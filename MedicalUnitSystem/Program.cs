@@ -1,4 +1,5 @@
-﻿using MedicalUnitSystem.Data;
+﻿using MedicalUnitSystem;
+using MedicalUnitSystem.Data;
 using MedicalUnitSystem.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -52,6 +53,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

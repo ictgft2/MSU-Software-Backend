@@ -1,16 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using MedicalUnitSystem.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using MedicalUnitSystem.Data;
-using MedicalUnitSystem.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens;
-using System.Threading.Tasks;
 
 namespace MedicalUnitSystem.Controllers
 {
