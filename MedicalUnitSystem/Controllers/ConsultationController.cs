@@ -1,4 +1,6 @@
-﻿using MedicalUnitSystem.Helpers;
+﻿using MedicalUnitSystem.DTOs;
+using MedicalUnitSystem.Helpers;
+using MedicalUnitSystem.Services.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,10 +10,17 @@ namespace MedicalUnitSystem.Controllers
     [ApiController]
     public class ConsultationController : ControllerBase
     {
-        [HttpGet]
-        public async Task Index()
+        private readonly IConsultationService _consultationService;
+
+        public ConsultationController(IConsultationService consultationService)
         {
-            throw new MedicalAppException(Constants.ConsultationNotFound, System.Net.HttpStatusCode.NotFound);
+            _consultationService = consultationService;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Result>> CreateConsultation([FromQuery]int patientId, [FromBody] ConsultationDto consultation)
+        {
+            return Ok(await _consultationService.CreateConsultation(patientId, consultation));
         }
     }
 }

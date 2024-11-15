@@ -1,6 +1,10 @@
 ﻿using MedicalUnitSystem;
 using MedicalUnitSystem.Data;
 using MedicalUnitSystem.Models;
+using MedicalUnitSystem.Repositories;
+using MedicalUnitSystem.Repositories.Contracts;
+using MedicalUnitSystem.Services;
+using MedicalUnitSystem.Services.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,13 +17,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Configure EF Core to use Npgsql with connection string
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<HospitalContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // Configure Identity services
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<HospitalContext>()
     .AddDefaultTokenProviders();
+
+// Configure repositories
+builder.Services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+
+// Cons=figure Custom Services
+builder.Services.AddScoped<IServiceWrapper, ServiceWrapper>();
 
 // JWT Authentication configuration
 

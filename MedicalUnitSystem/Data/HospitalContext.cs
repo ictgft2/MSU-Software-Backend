@@ -1,7 +1,6 @@
-﻿using System;
-using MedicalUnitSystem.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using MedicalUnitSystem.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalUnitSystem.Data
 {
@@ -9,8 +8,8 @@ namespace MedicalUnitSystem.Data
     {
         public HospitalContext(DbContextOptions<HospitalContext> options) : base(options) { }
 
-        //public DbSet<Patient> Patients { get; set; }
-        //public DbSet<UserRegistrationModel> Users { get; set; }
+        public DbSet<Patient> Patients { get; set; }        
+        public DbSet<Consultation> Consultations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
