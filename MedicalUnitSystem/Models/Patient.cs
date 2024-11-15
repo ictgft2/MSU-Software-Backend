@@ -18,6 +18,8 @@ namespace MedicalUnitSystem.Models
         public string ContactInfo { get; set; }
 
         public string MedicalHistory { get; set; }
+
+        public ICollection<Consultation> Consultations { get; set; }
     }
 }
 
