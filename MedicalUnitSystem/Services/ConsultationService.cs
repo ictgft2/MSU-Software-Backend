@@ -26,6 +26,8 @@ namespace MedicalUnitSystem.Services
 
            _repository.Consultation.Create(newConsultation);
 
+            _repository.Save();
+
             return Task.FromResult(Result.Success<Consultation>(newConsultation));
         }
     }
