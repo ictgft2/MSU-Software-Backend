@@ -8,6 +8,8 @@ namespace MedicalUnitSystem.Repositories
         private HospitalContext _context;
         private IConsultationRepository _consultation;
         private IPatientRepository _patient;
+        private ILaboratoryTestRepository _laboratoryTest;
+        private ILaboratoryTestTypeRepository _laboratoryTestType;
 
         public IConsultationRepository Consultation
         {
@@ -32,6 +34,30 @@ namespace MedicalUnitSystem.Repositories
                 }
 
                 return _patient;
+            }
+        }
+        public ILaboratoryTestTypeRepository LaboratoryTestType
+        {
+            get
+            {
+                if(_laboratoryTestType == null)
+                {
+                    _laboratoryTestType = new LaboratoryTestTypeRepository(_context);
+                }
+
+                return _laboratoryTestType;
+            }
+        }
+        public ILaboratoryTestRepository LaboratoryTest
+        {
+            get
+            {
+                if(_laboratoryTest == null)
+                {
+                    _laboratoryTest = new LaboratoryTestRepository(_context);
+                }
+
+                return _laboratoryTest;
             }
         }
 

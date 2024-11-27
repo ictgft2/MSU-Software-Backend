@@ -10,17 +10,17 @@ namespace MedicalUnitSystem.Controllers
     [ApiController]
     public class ConsultationController : ControllerBase
     {
-        private readonly IConsultationService _consultationService;
+        private readonly IServiceWrapper _service;
 
-        public ConsultationController(IConsultationService consultationService)
+        public ConsultationController(IServiceWrapper service)
         {
-            _consultationService = consultationService;
+            _service = service;
         }
 
         [HttpPost]
         public async Task<ActionResult<Result>> CreateConsultation([FromQuery]int patientId, [FromBody] ConsultationDto consultation)
         {
-            return Ok(await _consultationService.CreateConsultation(patientId, consultation));
+            return Ok(await _service.Consultation.CreateConsultation(patientId, consultation));
         }
     }
 }

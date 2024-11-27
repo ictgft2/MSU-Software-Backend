@@ -3,6 +3,7 @@ using System;
 using MedicalUnitSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedicalUnitSystem.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20241118190350_laboratorytestsandtypes")]
+    partial class laboratorytestsandtypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,15 +142,10 @@ namespace MedicalUnitSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LaboratoryTestId"));
 
-                    b.Property<int>("LaboratoryTestTypeId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("PatientId")
                         .HasColumnType("integer");
 
                     b.HasKey("LaboratoryTestId");
-
-                    b.HasIndex("LaboratoryTestTypeId");
 
                     b.HasIndex("PatientId");
 
@@ -345,19 +342,11 @@ namespace MedicalUnitSystem.Migrations
 
             modelBuilder.Entity("MedicalUnitSystem.Models.LaboratoryTest", b =>
                 {
-                    b.HasOne("MedicalUnitSystem.Models.LaboratoryTestType", "LaboratoryTestType")
-                        .WithMany()
-                        .HasForeignKey("LaboratoryTestTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("LaboratoryTestType");
 
                     b.Navigation("Patient");
                 });
