@@ -6,6 +6,7 @@
         IPatientRepository Patient { get; }
         ILaboratoryTestRepository LaboratoryTest { get; }
         ILaboratoryTestTypeRepository LaboratoryTestType { get; }
+        IVitalsRepository Vitals { get; }
         void Save();
     }
 }

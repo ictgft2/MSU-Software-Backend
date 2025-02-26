@@ -3,6 +3,7 @@ using System;
 using MedicalUnitSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedicalUnitSystem.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250226140600_Corrected Code First Relationships")]
+    partial class CorrectedCodeFirstRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,27 +224,6 @@ namespace MedicalUnitSystem.Migrations
                     b.ToTable("Vitals");
                 });
 
-            modelBuilder.Entity("MedicalUnitSystem.Models.Waitlist", b =>
-                {
-                    b.Property<int>("WaitlistId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("WaitlistId"));
-
-                    b.Property<DateTime>("DateQueued")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("PatientId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("WaitlistId");
-
-                    b.HasIndex("PatientId");
-
-                    b.ToTable("Waitlists");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -408,13 +389,6 @@ namespace MedicalUnitSystem.Migrations
                         .HasForeignKey("PatientId");
                 });
 
-            modelBuilder.Entity("MedicalUnitSystem.Models.Waitlist", b =>
-                {
-                    b.HasOne("MedicalUnitSystem.Models.Patient", null)
-                        .WithMany("Waitlists")
-                        .HasForeignKey("PatientId");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -473,8 +447,6 @@ namespace MedicalUnitSystem.Migrations
                     b.Navigation("LaboratoryTests");
 
                     b.Navigation("Vitals");
-
-                    b.Navigation("Waitlists");
                 });
 #pragma warning restore 612, 618
         }

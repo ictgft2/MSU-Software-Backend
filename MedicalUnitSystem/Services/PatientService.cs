@@ -1,4 +1,5 @@
-﻿using MedicalUnitSystem.DTOs;
+﻿using MedicalUnitSystem.DTOs.Requests;
+using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
@@ -14,7 +15,7 @@ namespace MedicalUnitSystem.Services
             _repository = repository;
         }
 
-        public Task<Result<Patient>> CreatePatient(PatientDto patient)
+        public Task<Result<Patient>> CreatePatient(PatientRequestDto patient)
         {
             var newPatient = new Patient
             {
@@ -29,7 +30,7 @@ namespace MedicalUnitSystem.Services
 
             _repository.Save();
 
-            return Task.FromResult(Result<Patient>.Success(newPatient));
+            return Task.FromResult(Result<PaitentResponseDto>.Success(newPatient));
         }
     }
 }

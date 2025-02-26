@@ -1,4 +1,5 @@
 ﻿using MedicalUnitSystem.DTOs;
+using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Services.Contracts;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +19,7 @@ namespace MedicalUnitSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Result>> CreateConsultation([FromQuery]int patientId, [FromBody] ConsultationDto consultation)
+        public async Task<ActionResult<Result>> CreateConsultation([FromQuery]int patientId, [FromBody] ConsultationRequestDto consultation)
         {
             return Ok(await _service.Consultation.CreateConsultation(patientId, consultation));
         }
