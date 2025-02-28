@@ -6,5 +6,7 @@
         IConsultationService Consultation { get; }
         ILaboratoryTestService LaboratoryTest { get; }
         ILaboratoryTestTypeService LaboratoryTestType { get; }
+        IVitalsService Vitals { get; }
+        IWaitingPatientService WaitingPatient { get; }
     }
 }

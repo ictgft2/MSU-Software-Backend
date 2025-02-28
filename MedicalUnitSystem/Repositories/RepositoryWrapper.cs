@@ -10,6 +10,8 @@ namespace MedicalUnitSystem.Repositories
         private IPatientRepository _patient;
         private ILaboratoryTestRepository _laboratoryTest;
         private ILaboratoryTestTypeRepository _laboratoryTestType;
+        private IVitalsRepository _vitals;
+        private IWaitingPatientRepository _waitlist;
 
         public IConsultationRepository Consultation
         {
@@ -58,6 +60,32 @@ namespace MedicalUnitSystem.Repositories
                 }
 
                 return _laboratoryTest;
+            }
+        }
+        
+        public IWaitingPatientRepository Waitlist
+        {
+            get
+            {
+                if(_waitlist == null)
+                {
+                    _waitlist = new WaitngPatientRepository(_context);
+                }
+
+                return _waitlist;
+            }
+        } 
+        
+        public IVitalsRepository Vitals
+        {
+            get
+            {
+                if(_vitals == null)
+                {
+                    _vitals = new VitalsRepository(_context);
+                }
+
+                return _vitals;
             }
         }
 

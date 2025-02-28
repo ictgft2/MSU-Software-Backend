@@ -10,7 +10,6 @@ namespace MedicalUnitSystem.Models
         public string Diagnosis { get; set; }
         public string Prescriptions { get; set; }
         public string LaboratoryTests { get; set; }
-        public int PatientId { get; set; }
         public Patient Patient { get; set; }
     }
 }

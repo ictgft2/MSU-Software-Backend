@@ -1,4 +1,5 @@
 ﻿using MedicalUnitSystem.DTOs;
+using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
@@ -13,14 +14,13 @@ namespace MedicalUnitSystem.Services
         {
             _repository = repository;
         }
-        public Task<Result<Consultation>> CreateConsultation(int patientId, ConsultationDto consultation)
+        public Task<Result<Consultation>> CreateConsultation(int patientId, ConsultationRequestDto consultation)
         {
             var newConsultation = new Consultation
             {
                 BloodPressure = consultation.BloodPressure,
                 Diagnosis = consultation.Diagnosis,
                 LaboratoryTests = consultation.LaboratoryTests,
-                PatientId = patientId,
                 Prescriptions = consultation.Prescriptions,
             };
 

@@ -1,4 +1,6 @@
-﻿using MedicalUnitSystem.DTOs;
+﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Requests;
+using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
@@ -9,12 +11,14 @@ namespace MedicalUnitSystem.Services
     public class PatientService : IPatientService
     {
         private readonly IRepositoryWrapper _repository;
-        public PatientService(IRepositoryWrapper repository) 
+        private readonly IMapper _mapper;
+        public PatientService(IRepositoryWrapper repository, IMapper mapper) 
         {
-            _repository = repository;
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public Task<Result<Patient>> CreatePatient(PatientDto patient)
+        public Task<Result<PatientResponseDto>> CreatePatient(PatientRequestDto patient)
         {
             var newPatient = new Patient
             {
@@ -29,7 +33,9 @@ namespace MedicalUnitSystem.Services
 
             _repository.Save();
 
-            return Task.FromResult(Result<Patient>.Success(newPatient));
+            var response = _mapper.Map<PatientResponseDto>(newPatient);
+
+            return Task.FromResult(Result<PatientResponseDto>.Success(response));
         }
     }
 }

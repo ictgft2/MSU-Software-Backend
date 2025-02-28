@@ -1,8 +1,8 @@
 ﻿using MedicalUnitSystem.Models;
 
-namespace MedicalUnitSystem.DTOs
+namespace MedicalUnitSystem.DTOs.Requests
 {
-    public class ConsultationDto
+    public class ConsultationRequestDto
     {
         public string BloodPressure { get; set; }
         public string Diagnosis { get; set; }

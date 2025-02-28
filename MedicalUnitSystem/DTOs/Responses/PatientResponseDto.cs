@@ -1,9 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace MedicalUnitSystem.DTOs
+﻿namespace MedicalUnitSystem.DTOs.Responses
 {
-    public class PatientDto
+    public class PatientResponseDto
     {
+        public int PatientId { get; set; }
         public string Name { get; set; }
 
         public int Age { get; set; }

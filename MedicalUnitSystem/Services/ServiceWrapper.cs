@@ -1,4 +1,5 @@
-﻿using MedicalUnitSystem.Repositories.Contracts;
+﻿using AutoMapper;
+using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
 
 namespace MedicalUnitSystem.Services
@@ -10,6 +11,11 @@ namespace MedicalUnitSystem.Services
         private IConsultationService _consultation;
         private ILaboratoryTestService  _laboratoryTest;
         private ILaboratoryTestTypeService _laboratoryTestType;
+        private IVitalsService _vitals;
+        private IWaitingPatientService _waitingPatient;
+
+        private readonly IMapper _mapper;
+
 
         public IPatientService Patient
         {
@@ -17,7 +23,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_patient == null)
                 {
-                    _patient = new PatientService(_repository);
+                    _patient = new PatientService(_repository, _mapper);
                 }
 
                 return _patient;
@@ -58,6 +64,30 @@ namespace MedicalUnitSystem.Services
                 }
 
                 return _laboratoryTestType;
+            }
+        }
+        public IVitalsService Vitals
+        {
+            get
+            {
+                if(_vitals == null)
+                {
+                    _vitals = new VitalService(_repository, _mapper);
+                }
+
+                return _vitals;
+            }
+        }
+        public IWaitingPatientService WaitingPatient
+        {
+            get
+            {
+                if(_waitingPatient == null)
+                {
+                    _waitingPatient = new WaitPatientService(_repository, _mapper);
+                }
+
+                return _waitingPatient;
             }
         }
 
