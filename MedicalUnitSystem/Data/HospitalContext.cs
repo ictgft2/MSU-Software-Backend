@@ -13,7 +13,7 @@ namespace MedicalUnitSystem.Data
         public DbSet<LaboratoryTest> LaboratoryTests { get; set; }
         public DbSet<LaboratoryTestType> LaboratoryTestTypes { get; set; }
         public DbSet<Vital> Vitals { get; set; }
-        public DbSet<Waitlist> Waitlists { get; set; }
+        public DbSet<WaitingPatient> WaitingPatients { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

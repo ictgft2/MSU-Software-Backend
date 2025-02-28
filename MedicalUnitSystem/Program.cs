@@ -59,6 +59,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add Automapper
+builder.Services.AddAutoMapper(
+           AppDomain.CurrentDomain.GetAssemblies());
+
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

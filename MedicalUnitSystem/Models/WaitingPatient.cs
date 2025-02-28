@@ -2,10 +2,11 @@
 
 namespace MedicalUnitSystem.Models
 {
-    public class Waitlist
+    public class WaitingPatient
     {
         [Key]
-        public int WaitlistId { get; set; }
+        public int WaitPatientId { get; set; }
+        public bool AttendedTo { get; set; }
         public DateTime DateQueued { get; set; }
     }
 }

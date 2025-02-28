@@ -22,7 +22,7 @@ namespace MedicalUnitSystem.Models
         public ICollection<Consultation> Consultations { get; set; }
         public ICollection<LaboratoryTest> LaboratoryTests { get; set; }
         public ICollection<Vital> Vitals { get; set; }
-        public ICollection<Waitlist> Waitlists { get; set; }
+        public ICollection<WaitingPatient> Waitlists { get; set; }
     }
 }
 

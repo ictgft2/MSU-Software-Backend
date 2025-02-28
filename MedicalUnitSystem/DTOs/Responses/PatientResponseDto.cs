@@ -1,6 +1,6 @@
 ﻿namespace MedicalUnitSystem.DTOs.Responses
 {
-    public class PaitentResponseDto
+    public class PatientResponseDto
     {
         public int PatientId { get; set; }
         public string Name { get; set; }

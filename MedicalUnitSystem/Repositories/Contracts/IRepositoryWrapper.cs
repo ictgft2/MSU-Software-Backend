@@ -7,6 +7,7 @@
         ILaboratoryTestRepository LaboratoryTest { get; }
         ILaboratoryTestTypeRepository LaboratoryTestType { get; }
         IVitalsRepository Vitals { get; }
+        IWaitingPatientRepository Waitlist { get; }
         void Save();
     }
 }

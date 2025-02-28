@@ -26,7 +26,19 @@ namespace MedicalUnitSystem.Controllers
         [HttpPost("vitals/{patientId}")]
         public async Task<ActionResult<Result>> CreateVitals([FromRoute] int patientId, [FromBody] VitalsRequestDto vitals)
         {
-            return Ok(await )
+            return Ok(await _serviceWrapper.Vitals.CreateVitals(patientId, vitals));
+        }
+
+        [HttpPost("waitlist/{patientId}")]
+        public async Task<ActionResult<Result>> CreateWaitingPatient([FromRoute] int patientId)
+        {
+            return Ok(await _serviceWrapper.WaitingPatient.CreateWaitingPatient(patientId));
+        }
+
+        [HttpPost("waitlist")]
+        public async Task<ActionResult<Result>> Waitlist()
+        {
+            return Ok(await _serviceWrapper.WaitingPatient.GetWaitingPatientslist());
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
+using MedicalUnitSystem.Helpers;
 
 namespace MedicalUnitSystem.Services.Contracts
 {
     public interface IVitalsService
     {
-        Task<VitalsResponseDto> CreateVitals(int patientId, VitalsRequestDto vitals);
+        Task<Result<VitalsResponseDto>> CreateVitals(int patientId, VitalsRequestDto vitals);
     }
 }
