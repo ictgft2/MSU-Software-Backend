@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MedicalUnitSystem.Models
 {
-	public class Patient
+	public class Patient : Entity
 	{
         [Key]
         public int PatientId { get; set; }
@@ -13,9 +13,12 @@ namespace MedicalUnitSystem.Models
 
         public int Age { get; set; }
 
-        public string Gender { get; set; }
+        public string PatientNumber { get; set; }
 
-        public string ContactInfo { get; set; }
+        public Gender Gender { get; set; }
+
+        public string Email { get; set; }
+        public string? Phone { get; set; }
 
         public string MedicalHistory { get; set; }
 

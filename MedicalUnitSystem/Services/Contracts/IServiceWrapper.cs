@@ -8,5 +8,7 @@
         ILaboratoryTestTypeService LaboratoryTestType { get; }
         IVitalsService Vitals { get; }
         IWaitingPatientService WaitingPatient { get; }
+        IDoctorService Doctor { get; }
+        IGenderService Gender { get; }
     }
 }

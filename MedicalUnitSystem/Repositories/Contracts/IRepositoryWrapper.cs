@@ -7,7 +7,10 @@
         ILaboratoryTestRepository LaboratoryTest { get; }
         ILaboratoryTestTypeRepository LaboratoryTestType { get; }
         IVitalsRepository Vitals { get; }
-        IWaitingPatientRepository Waitlist { get; }
+        IWaitingPatientRepository WaitingPatient { get; }
+        IPrescriptionRepository Prescription { get; }
+        IDoctorRepository Doctor { get; }
+        IGenderRepository Gender { get; }
         void Save();
     }
 }

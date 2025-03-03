@@ -13,6 +13,8 @@ namespace MedicalUnitSystem.Services
         private ILaboratoryTestTypeService _laboratoryTestType;
         private IVitalsService _vitals;
         private IWaitingPatientService _waitingPatient;
+        private IDoctorService _doctorService;
+        private IGenderService _genderService;
 
         private readonly IMapper _mapper;
 
@@ -36,7 +38,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_consultation == null)
                 {
-                    _consultation = new ConsultationService(_repository);
+                    _consultation = new ConsultationService(_repository, _mapper);
                 }
 
                 return _consultation;
@@ -90,10 +92,35 @@ namespace MedicalUnitSystem.Services
                 return _waitingPatient;
             }
         }
+        public IDoctorService Doctor
+        {
+            get
+            {
+                if(_doctorService == null)
+                {
+                    _doctorService = new DoctorService(_repository, _mapper);
+                }
 
-        public ServiceWrapper(IRepositoryWrapper repository)
+                return _doctorService;
+            }
+        }
+        public IGenderService Gender
+        {
+            get
+            {
+                if(_genderService == null)
+                {
+                    _genderService = new GenderService(_repository, _mapper);
+                }
+
+                return _genderService;
+            }
+        }
+
+        public ServiceWrapper(IRepositoryWrapper repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
     }
 }

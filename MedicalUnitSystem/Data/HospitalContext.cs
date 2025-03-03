@@ -14,6 +14,9 @@ namespace MedicalUnitSystem.Data
         public DbSet<LaboratoryTestType> LaboratoryTestTypes { get; set; }
         public DbSet<Vital> Vitals { get; set; }
         public DbSet<WaitingPatient> WaitingPatients { get; set; }
+        public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Prescription> Prescriptions { get; set; }
+        public DbSet<Gender> Genders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

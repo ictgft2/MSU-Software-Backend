@@ -3,6 +3,7 @@ using System;
 using MedicalUnitSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedicalUnitSystem.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250303094550_Extended All Models with Entity")]
+    partial class ExtendedAllModelswithEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -151,46 +153,22 @@ namespace MedicalUnitSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DoctorId"));
 
+                    b.Property<string>("ContactInfo")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Gender")
                         .HasColumnType("text");
-
-                    b.Property<int?>("GenderId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Phone")
-                        .HasColumnType("text");
-
                     b.HasKey("DoctorId");
 
-                    b.HasIndex("GenderId");
-
                     b.ToTable("Doctors");
-                });
-
-            modelBuilder.Entity("MedicalUnitSystem.Models.Gender", b =>
-                {
-                    b.Property<int>("GenderId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GenderId"));
-
-                    b.Property<DateTimeOffset>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("GenderName")
-                        .HasColumnType("text");
-
-                    b.HasKey("GenderId");
-
-                    b.ToTable("Genders");
                 });
 
             modelBuilder.Entity("MedicalUnitSystem.Models.LaboratoryTest", b =>
@@ -249,14 +227,14 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ContactInfo")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Gender")
                         .HasColumnType("text");
-
-                    b.Property<int?>("GenderId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("MedicalHistory")
                         .HasColumnType("text");
@@ -265,15 +243,7 @@ namespace MedicalUnitSystem.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PatientNumber")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("text");
-
                     b.HasKey("PatientId");
-
-                    b.HasIndex("GenderId");
 
                     b.ToTable("Patients");
                 });
@@ -513,15 +483,6 @@ namespace MedicalUnitSystem.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("MedicalUnitSystem.Models.Doctor", b =>
-                {
-                    b.HasOne("MedicalUnitSystem.Models.Gender", "Gender")
-                        .WithMany("Doctors")
-                        .HasForeignKey("GenderId");
-
-                    b.Navigation("Gender");
-                });
-
             modelBuilder.Entity("MedicalUnitSystem.Models.LaboratoryTest", b =>
                 {
                     b.HasOne("MedicalUnitSystem.Models.LaboratoryTestType", "LaboratoryTestType")
@@ -537,15 +498,6 @@ namespace MedicalUnitSystem.Migrations
                     b.Navigation("LaboratoryTestType");
 
                     b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("MedicalUnitSystem.Models.Patient", b =>
-                {
-                    b.HasOne("MedicalUnitSystem.Models.Gender", "Gender")
-                        .WithMany("Patients")
-                        .HasForeignKey("GenderId");
-
-                    b.Navigation("Gender");
                 });
 
             modelBuilder.Entity("MedicalUnitSystem.Models.Prescription", b =>
@@ -634,13 +586,6 @@ namespace MedicalUnitSystem.Migrations
             modelBuilder.Entity("MedicalUnitSystem.Models.Doctor", b =>
                 {
                     b.Navigation("Consultations");
-                });
-
-            modelBuilder.Entity("MedicalUnitSystem.Models.Gender", b =>
-                {
-                    b.Navigation("Doctors");
-
-                    b.Navigation("Patients");
                 });
 
             modelBuilder.Entity("MedicalUnitSystem.Models.Patient", b =>

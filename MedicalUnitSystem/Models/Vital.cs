@@ -2,7 +2,7 @@
 
 namespace MedicalUnitSystem.Models
 {
-    public class Vital
+    public class Vital : Entity
     {
         [Key]
         public Guid Id { get; set; }

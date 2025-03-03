@@ -4,7 +4,7 @@ namespace MedicalUnitSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LaboratoryTestController : ControllerBase
+    public class LaboratoryTestTypesController : ControllerBase
     {
     }
 }
