@@ -19,6 +19,8 @@ namespace MedicalUnitSystem.Models
 
         public string Email { get; set; }
         public string? Phone { get; set; }
+        public bool IsEmergency { get; set; }
+        public DateTimeOffset AdmissionTime { get; set; }
 
         public string MedicalHistory { get; set; }
 
