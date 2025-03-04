@@ -6,6 +6,7 @@ namespace MedicalUnitSystem.Models
     {
         [Key]
         public int WaitingPatientId { get; set; }
+        public int PatientId { get; set; }
         public bool AttendedTo { get; set; }
         public DateTime DateQueued { get; set; }
         public Patient Patient { get; set; }

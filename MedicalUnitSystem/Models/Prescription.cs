@@ -6,11 +6,12 @@ namespace MedicalUnitSystem.Models
     {
         [Key]
         public int PrescriptionId { get; set; }
-        public Consultation Consultation { get; set; }
+        public int ConsultationId { get; set; }
         public string MedicationName { get; set; }
         public string Dosage { get; set; }
         public string Frequency { get; set; }
         public string  Instructions { get; set; }
+        public Consultation Consultation { get; set; }
         public DateTimeOffset PrescribedDate { get; set; } = DateTimeOffset.UtcNow;
     }
 }

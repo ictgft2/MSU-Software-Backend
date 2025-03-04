@@ -1,6 +1,7 @@
 ﻿using MedicalUnitSystem.Data;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalUnitSystem.Repositories
 {

@@ -20,10 +20,14 @@ namespace MedicalUnitSystem.Controllers
         [HttpPost]
         public async Task<ActionResult<Result>> CreatePatient([FromBody] CreatePatientRequestDto patient)
         {
-            return Ok(await _serviceWrapper.Patient.CreatePatient(patient));
+            var newPatient = await _serviceWrapper.Patient.CreatePatient(patient);
+
+            return CreatedAtRoute("GetPatient", 
+                new { patientId = newPatient.Data.PatientId },
+                newPatient);
         }
 
-        [HttpGet("{patientId}")]
+        [HttpGet("{patientId}", Name = "GetPatient")]
         public async Task<ActionResult<Result>> GetPatient([FromRoute] int patientId)
         {
             return Ok(await _serviceWrapper.Patient.GetPatient(patientId));
@@ -32,7 +36,14 @@ namespace MedicalUnitSystem.Controllers
         [HttpPatch("{patientId}")]
         public async Task<ActionResult<Result>> UpdatePatient([FromRoute] int patientId, [FromBody] UpdatePatientRequestDto patient)
         {
-            return Ok(await _serviceWrapper.Patient.UpdatePatient(patientId, patient));
+            if(!await _serviceWrapper.Patient.PatientExistsAsync(patientId))
+            {
+                return NotFound();
+            }
+
+            _serviceWrapper.Patient.UpdatePatient(patientId, patient);
+
+            return NoContent();
         }
 
         [HttpPost("vitals/{patientId}")]

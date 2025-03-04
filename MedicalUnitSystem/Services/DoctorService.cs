@@ -20,17 +20,10 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<CreateDoctorResponseDto>> CreateDoctor(CreateDoctorRequestDto doctor)
         {
-            var gender = _repository.Gender.FindByCondition(x => x.GenderId == doctor.GenderId);
-
-            if (gender == null)
-            {
-                return Task.FromResult(Result.Failure<CreateDoctorResponseDto>($"Gender with id: {doctor.GenderId} not found"));
-            }
-
             var newDoctor = new Doctor
             {
                 Name = doctor.Name,
-                Gender = gender.FirstOrDefault(),
+                GenderId = doctor.GenderId,
                 Email = doctor.Email,
                 Phone = doctor.Phone,
             };
@@ -44,43 +37,27 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<CreateDoctorResponseDto>.Success(response));
         }
 
-        public Task<Result<UpdateDoctorResponseDto>> UpdateDoctor(int doctorId, UpdateDoctorRequestDto doctorDetails)
+        public void UpdateDoctor(int doctorId, UpdateDoctorRequestDto doctorDetails)
         {
             var existingDoctor = _repository.Doctor.FindByCondition(x => x.DoctorId == doctorId);
 
-            if (existingDoctor != null)
-            {
-                return Task.FromResult(Result.Failure<UpdateDoctorResponseDto>($"Doctor with Id:{doctorId} not found"));
-            }
-
             var doctor = existingDoctor.FirstOrDefault();
-
-            var gender = _repository.Gender.FindByCondition(x => x.GenderId == doctorDetails.GenderId);
-
-            if (gender.FirstOrDefault() == null)
-            {
-                return Task.FromResult(Result.Failure<UpdateDoctorResponseDto>($"Gender with id: {doctorDetails.GenderId} not found"));
-            }
 
             doctor.Name = doctorDetails.Name;
             doctor.Phone = doctorDetails.Phone;
             doctor.Email = doctorDetails.Email;
-            doctor.Gender = gender.FirstOrDefault();
+            doctor.GenderId = doctorDetails.GenderId;
 
             _repository.Doctor.Update(doctor);
 
             _repository.Save();
-
-            var response = _mapper.Map<UpdateDoctorResponseDto>(doctor);
-
-            return Task.FromResult(Result<UpdateDoctorResponseDto>.Success(response));
         }
 
         public Task<Result<GetDoctorResponseDto>> GetDoctor(int doctorId)
         {
             var existingDoctor = _repository.Doctor.FindByCondition(x => x.DoctorId == doctorId);
 
-            if (existingDoctor != null)
+            if (existingDoctor == null)
             {
                 return Task.FromResult(Result.Failure<GetDoctorResponseDto>($"Doctor with Id:{doctorId} not found"));
             }
@@ -89,6 +66,7 @@ namespace MedicalUnitSystem.Services
 
             return Task.FromResult(Result<GetDoctorResponseDto>.Success(response));
         }
+
         public Task<Result<List<GetDoctorResponseDto>>> GetDoctors()
         {
             var doctors = _repository.Doctor.FindAll();
@@ -96,6 +74,11 @@ namespace MedicalUnitSystem.Services
             var response = _mapper.Map<List<GetDoctorResponseDto>>(doctors.ToList());
 
             return Task.FromResult(Result<List<GetDoctorResponseDto>>.Success(response));
+        }
+
+        public async Task<bool> DoctorExistsAsync(int doctorId)
+        {
+            return await _repository.Doctor.DoctorExistsAsync(doctorId);
         }
     }
 }

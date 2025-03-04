@@ -9,8 +9,9 @@ namespace MedicalUnitSystem.Models
 
         [Required]
         public string Name { get; set; }
+        public int GenderId { get; set; }
 
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public string? Phone { get; set; }
         public Gender Gender { get; set; }
         public ICollection<Consultation> Consultations { get; set; }

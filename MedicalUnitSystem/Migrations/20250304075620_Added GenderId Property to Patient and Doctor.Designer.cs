@@ -3,6 +3,7 @@ using System;
 using MedicalUnitSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedicalUnitSystem.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250304075620_Added GenderId Property to Patient and Doctor")]
+    partial class AddedGenderIdPropertytoPatientandDoctor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,7 +121,7 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<string>("Diagnosis")
                         .HasColumnType("text");
 
-                    b.Property<int>("DoctorId")
+                    b.Property<int?>("DoctorId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("FollowupDate")
@@ -128,7 +130,7 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Symptoms")
@@ -207,7 +209,7 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<int>("LaboratoryTestTypeId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("integer");
 
                     b.HasKey("LaboratoryTestId");
@@ -292,7 +294,7 @@ namespace MedicalUnitSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PrescriptionId"));
 
-                    b.Property<int>("ConsultationId")
+                    b.Property<int?>("ConsultationId")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("DateCreated")
@@ -335,7 +337,7 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<DateTime>("DateOfVisit")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -362,7 +364,7 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<DateTime>("DateQueued")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("integer");
 
                     b.HasKey("WaitingPatientId");
@@ -508,15 +510,11 @@ namespace MedicalUnitSystem.Migrations
                 {
                     b.HasOne("MedicalUnitSystem.Models.Doctor", "Doctor")
                         .WithMany("Consultations")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DoctorId");
 
                     b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
                         .WithMany("Consultations")
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PatientId");
 
                     b.Navigation("Doctor");
 
@@ -544,9 +542,7 @@ namespace MedicalUnitSystem.Migrations
 
                     b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
                         .WithMany("LaboratoryTests")
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PatientId");
 
                     b.Navigation("LaboratoryTestType");
 
@@ -568,9 +564,7 @@ namespace MedicalUnitSystem.Migrations
                 {
                     b.HasOne("MedicalUnitSystem.Models.Consultation", "Consultation")
                         .WithMany("Prescriptions")
-                        .HasForeignKey("ConsultationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ConsultationId");
 
                     b.Navigation("Consultation");
                 });
@@ -579,9 +573,7 @@ namespace MedicalUnitSystem.Migrations
                 {
                     b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
                         .WithMany("Vitals")
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PatientId");
 
                     b.Navigation("Patient");
                 });
@@ -590,9 +582,7 @@ namespace MedicalUnitSystem.Migrations
                 {
                     b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
                         .WithMany("Waitlists")
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PatientId");
 
                     b.Navigation("Patient");
                 });

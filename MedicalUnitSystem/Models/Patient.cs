@@ -10,6 +10,7 @@ namespace MedicalUnitSystem.Models
 
         [Required]
         public string Name { get; set; }
+        public int GenderId { get; set; }
 
         public int Age { get; set; }
 
@@ -17,7 +18,7 @@ namespace MedicalUnitSystem.Models
 
         public Gender Gender { get; set; }
 
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public string? Phone { get; set; }
         public bool IsEmergency { get; set; }
         public DateTimeOffset AdmissionTime { get; set; }

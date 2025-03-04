@@ -20,20 +20,13 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<CreatePatientResponseDto>> CreatePatient(CreatePatientRequestDto patient)
         {
-            var gender = _repository.Gender.FindByCondition(x => x.GenderId == patient.GenderId);
-
-            if(gender.FirstOrDefault() == null)
-            {
-                return Task.FromResult(Result.Failure<CreatePatientResponseDto>($"Gender with id: {patient.GenderId} not found"));
-            }
-
             var newPatientNumber = GenerateUniquePatientNumber();
 
             var newPatient = new Patient
             {
                 Age = patient.Age,
                 Name = patient.Name,
-                Gender = gender.FirstOrDefault(),
+                GenderId = patient.GenderId,
                 Email = patient.Email,
                 PatientNumber = newPatientNumber,
                 Phone = patient.Phone,
@@ -49,37 +42,21 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<CreatePatientResponseDto>.Success(response));
         }
 
-        public Task<Result<UpdatePatientResponseDto>> UpdatePatient(int patientId, UpdatePatientRequestDto patientDetails)
+        public void UpdatePatient(int patientId, UpdatePatientRequestDto patientDetails)
         {
             var existingPatient = _repository.Patient.FindByCondition(x => x.PatientId == patientId);
 
-            if(existingPatient != null)
-            {
-                return Task.FromResult(Result.Failure<UpdatePatientResponseDto>($"Patient with Id:{patientId} not found"));
-            }
-
             var patient = existingPatient.FirstOrDefault();
-
-            var gender = _repository.Gender.FindByCondition(x => x.GenderId == patientDetails.GenderId);
-
-            if (gender.FirstOrDefault() == null)
-            {
-                return Task.FromResult(Result.Failure<UpdatePatientResponseDto>($"Gender with id: {patientDetails.GenderId} not found"));
-            }
 
             patient.Name = patientDetails.Name;
             patient.Age = patientDetails.Age;
             patient.Email = patientDetails.Email;
             patient.Phone = patientDetails.Phone;
-            patient.Gender = gender.FirstOrDefault();
+            patient.GenderId = patientDetails.GenderId;
 
             _repository.Patient.Update(patient);
 
             _repository.Save();
-
-            var response = _mapper.Map<UpdatePatientResponseDto>(patient);
-
-            return Task.FromResult(Result<UpdatePatientResponseDto>.Success(response));
         }
 
         public Task<Result<GetPatientResponseDto>> GetPatient(int patientId)
@@ -116,6 +93,11 @@ namespace MedicalUnitSystem.Services
             } while (_repository.Patient.PatientNumberExist(patientNumber)); // Ensure uniqueness in DB
 
             return patientNumber;
+        }
+
+        public async Task<bool> PatientExistsAsync(int patientId)
+        {
+            return await _repository.Patient.PatientExistsAsync(patientId);
         }
     }
 }
