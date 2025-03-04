@@ -7,6 +7,9 @@ namespace MedicalUnitSystem.Services.Contracts
 {
     public interface IPatientService
     {
-        Task<Result<PatientResponseDto>> CreatePatient(PatientRequestDto patient);
+        Task<Result<CreatePatientResponseDto>> CreatePatient(CreatePatientRequestDto patient);
+        void UpdatePatient(int patientId, UpdatePatientRequestDto patient);
+        Task<Result<GetPatientResponseDto>> GetPatient(int patientId);
+        Task<bool> PatientExistsAsync(int doctorId);
     }
 }

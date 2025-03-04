@@ -3,19 +3,25 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MedicalUnitSystem.Models
 {
-	public class Patient
+	public class Patient : Entity
 	{
         [Key]
         public int PatientId { get; set; }
 
         [Required]
         public string Name { get; set; }
+        public int GenderId { get; set; }
 
         public int Age { get; set; }
 
-        public string Gender { get; set; }
+        public string PatientNumber { get; set; }
 
-        public string ContactInfo { get; set; }
+        public Gender Gender { get; set; }
+
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public bool IsEmergency { get; set; }
+        public DateTimeOffset AdmissionTime { get; set; }
 
         public string MedicalHistory { get; set; }
 

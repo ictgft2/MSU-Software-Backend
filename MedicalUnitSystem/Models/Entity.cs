@@ -2,8 +2,8 @@
 {
     public class Entity
     {
-        public int CreatedBy { get; set; }
-        public int ModifiedBy { get; set; }
-        public DateTimeOffset DateCreated { get; set; }
+        //public int CreatedBy { get; set; }
+        //public int ModifiedBy { get; set; }
+        public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
     }
 }

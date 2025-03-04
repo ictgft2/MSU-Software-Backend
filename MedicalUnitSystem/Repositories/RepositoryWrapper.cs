@@ -11,7 +11,10 @@ namespace MedicalUnitSystem.Repositories
         private ILaboratoryTestRepository _laboratoryTest;
         private ILaboratoryTestTypeRepository _laboratoryTestType;
         private IVitalsRepository _vitals;
-        private IWaitingPatientRepository _waitlist;
+        private IWaitingPatientRepository _waitingPatient;
+        private IPrescriptionRepository _prescriptionRepository;
+        private IDoctorRepository _doctorRepository;
+        private IGenderRepository _genderRepository;
 
         public IConsultationRepository Consultation
         {
@@ -63,16 +66,16 @@ namespace MedicalUnitSystem.Repositories
             }
         }
         
-        public IWaitingPatientRepository Waitlist
+        public IWaitingPatientRepository WaitingPatient
         {
             get
             {
-                if(_waitlist == null)
+                if(_waitingPatient == null)
                 {
-                    _waitlist = new WaitngPatientRepository(_context);
+                    _waitingPatient = new WaitngPatientRepository(_context);
                 }
 
-                return _waitlist;
+                return _waitingPatient;
             }
         } 
         
@@ -86,6 +89,42 @@ namespace MedicalUnitSystem.Repositories
                 }
 
                 return _vitals;
+            }
+        }
+        public IPrescriptionRepository Prescription
+        {
+            get
+            {
+                if(_prescriptionRepository == null)
+                {
+                    _prescriptionRepository = new PrescriptionRepository(_context);
+                }
+
+                return _prescriptionRepository;
+            }
+        }
+        public IDoctorRepository Doctor
+        {
+            get
+            {
+                if(_doctorRepository == null)
+                {
+                    _doctorRepository = new DoctorRespository(_context);
+                }
+
+                return _doctorRepository;
+            }
+        }
+        public IGenderRepository Gender
+        {
+            get
+            {
+                if(_genderRepository == null)
+                {
+                    _genderRepository = new GenderRepository(_context);
+                }
+
+                return _genderRepository;
             }
         }
 

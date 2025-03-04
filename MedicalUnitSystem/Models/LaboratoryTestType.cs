@@ -2,7 +2,7 @@
 
 namespace MedicalUnitSystem.Models
 {
-    public class LaboratoryTestType
+    public class LaboratoryTestType : Entity
     {
         [Key]
         public int LaboratorytestTypeId { get; set; }

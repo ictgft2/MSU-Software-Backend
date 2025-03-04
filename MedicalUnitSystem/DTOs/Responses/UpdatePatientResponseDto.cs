@@ -1,6 +1,6 @@
 ﻿namespace MedicalUnitSystem.DTOs.Responses
 {
-    public class PatientResponseDto
+    public class UpdatePatientResponseDto
     {
         public int PatientId { get; set; }
         public string Name { get; set; }
@@ -9,8 +9,7 @@
 
         public string Gender { get; set; }
 
-        public string ContactInfo { get; set; }
-
-        public string MedicalHistory { get; set; }
+        public string Email { get; set; }
+        public string? Phone { get; set; }
     }
 }
