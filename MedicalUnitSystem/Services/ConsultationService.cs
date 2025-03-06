@@ -20,7 +20,7 @@ namespace MedicalUnitSystem.Services
         }
         public Task<Result<CreateConsultationResponseDto>> CreateConsultation(int patientId, CreateConsultationRequestDto consultation)
         {
-            var patient = _repository.Patient.FindByCondition(x => x.PatientId == patientId);
+            var patient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
             if (patient != null)
             {
@@ -56,11 +56,11 @@ namespace MedicalUnitSystem.Services
                     };
 
                     newConsultation.Prescriptions.Add(newPrescription);
-                    _repository.Prescription.Create(newPrescription);
+                    _repository.Prescriptions.Create(newPrescription);
                 }
             }
 
-           _repository.Consultation.Create(newConsultation);
+           _repository.Consultations.Create(newConsultation);
 
             _repository.Save();
 

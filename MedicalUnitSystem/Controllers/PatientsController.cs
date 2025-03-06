@@ -27,6 +27,19 @@ namespace MedicalUnitSystem.Controllers
                 newPatient);
         }
 
+        [HttpPost("admit")]
+        public async Task<ActionResult<Result>> AdmitPatient([FromBody] string patientPhoneNumber)
+        {
+            var patientExists = await _serviceWrapper.Patient.PatientExistsAsync(patientPhoneNumber);
+
+            var admittedPatient = await _serviceWrapper.Patient.AdmitPatient(
+                patientPhoneNumber, patientExists);
+
+            return CreatedAtRoute("GetPatient",
+                new { patientId = admittedPatient.Data.PatientId },
+                    admittedPatient);
+        }
+
         [HttpGet("{patientId}", Name = "GetPatient")]
         public async Task<ActionResult<Result>> GetPatient([FromRoute] int patientId)
         {

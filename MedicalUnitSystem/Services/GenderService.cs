@@ -24,7 +24,7 @@ namespace MedicalUnitSystem.Services
                 GenderName = gender.GenderName
             };
 
-            _repository.Gender.Create(newGender);
+            _repository.Genders.Create(newGender);
 
             _repository.Save();
 
@@ -35,7 +35,7 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<GetGenderResponseDto>> GetGender(int genderId)
         {
-            var existingGender = _repository.Gender.FindByCondition(x => x.GenderId == genderId);
+            var existingGender = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
             if (existingGender == null)
             {
@@ -49,7 +49,7 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<List<GetGenderResponseDto>>> GetGenders()
         {
-            var genders = _repository.Gender.FindAll();
+            var genders = _repository.Genders.FindAll();
 
             var response = _mapper.Map<List<GetGenderResponseDto>>(genders.ToList());
 
@@ -58,7 +58,7 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<UpdateGenderResponseDto>> UpdateGender(int genderId, UpdateGenderRequestDto genderDetails)
         {
-            var existingGender = _repository.Gender.FindByCondition(x => x.GenderId == genderId);
+            var existingGender = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
             if (existingGender == null)
             {
@@ -69,7 +69,7 @@ namespace MedicalUnitSystem.Services
 
            updatedGender.GenderName = genderDetails.GenderName;
 
-            _repository.Gender.Update(updatedGender);
+            _repository.Genders.Update(updatedGender);
 
             _repository.Save();
 

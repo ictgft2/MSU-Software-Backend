@@ -29,6 +29,7 @@ namespace MedicalUnitSystem.Profiles
             CreateMap<Gender, GetGenderResponseDto>();
             CreateMap<Gender, CreateGenderResponseDto>();
             CreateMap<Gender, UpdateGenderResponseDto>();            
+            CreateMap<Admission, CreateAdmissionResponseDto>();            
         }
     }
 }

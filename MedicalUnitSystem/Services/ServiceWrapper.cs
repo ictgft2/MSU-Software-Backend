@@ -15,6 +15,7 @@ namespace MedicalUnitSystem.Services
         private IWaitingPatientService _waitingPatient;
         private IDoctorService _doctorService;
         private IGenderService _genderService;
+        private IAdmissionService _admissionService;
 
         private readonly IMapper _mapper;
 
@@ -25,7 +26,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_patient == null)
                 {
-                    _patient = new PatientService(_repository, _mapper);
+                    _patient = new PatientService(_repository, _mapper, _admissionService);
                 }
 
                 return _patient;
@@ -114,6 +115,18 @@ namespace MedicalUnitSystem.Services
                 }
 
                 return _genderService;
+            }
+        }
+        public IAdmissionService Admission
+        {
+            get
+            {
+                if(_admissionService == null)
+                {
+                    _admissionService = new AdmissionService(_repository, _mapper);
+                }
+
+                return _admissionService;
             }
         }
 

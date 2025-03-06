@@ -10,5 +10,6 @@
         IWaitingPatientService WaitingPatient { get; }
         IDoctorService Doctor { get; }
         IGenderService Gender { get; }
+        IAdmissionService Admission { get; }
     }
 }

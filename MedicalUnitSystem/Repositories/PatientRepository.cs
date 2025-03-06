@@ -25,5 +25,19 @@ namespace MedicalUnitSystem.Repositories
 
             return await Context.Patients.AnyAsync(d => d.PatientId == patientId);
         }
+        public async Task<bool> PatientExistsAsync(string patientPhoneNumber)
+        {
+            if (string.IsNullOrEmpty(patientPhoneNumber))
+            {
+                throw new ArgumentNullException(nameof(patientPhoneNumber));
+            }
+
+            return await Context.Patients.AnyAsync(d => d.Phone == patientPhoneNumber);
+        }
+
+        public async Task<Patient> GetPatientByPhoneAsync(string patientPhoneNumber)
+        {
+            return await Context.Patients.FirstOrDefaultAsync(p => p.Phone == patientPhoneNumber);
+        }
     }
 }

@@ -28,7 +28,7 @@ namespace MedicalUnitSystem.Services
                 Phone = doctor.Phone,
             };
 
-            _repository.Doctor.Create(newDoctor);
+            _repository.Doctors.Create(newDoctor);
 
             _repository.Save();
 
@@ -39,7 +39,7 @@ namespace MedicalUnitSystem.Services
 
         public void UpdateDoctor(int doctorId, UpdateDoctorRequestDto doctorDetails)
         {
-            var existingDoctor = _repository.Doctor.FindByCondition(x => x.DoctorId == doctorId);
+            var existingDoctor = _repository.Doctors.FindByCondition(x => x.DoctorId == doctorId);
 
             var doctor = existingDoctor.FirstOrDefault();
 
@@ -48,14 +48,14 @@ namespace MedicalUnitSystem.Services
             doctor.Email = doctorDetails.Email;
             doctor.GenderId = doctorDetails.GenderId;
 
-            _repository.Doctor.Update(doctor);
+            _repository.Doctors.Update(doctor);
 
             _repository.Save();
         }
 
         public Task<Result<GetDoctorResponseDto>> GetDoctor(int doctorId)
         {
-            var existingDoctor = _repository.Doctor.FindByCondition(x => x.DoctorId == doctorId);
+            var existingDoctor = _repository.Doctors.FindByCondition(x => x.DoctorId == doctorId);
 
             if (existingDoctor == null)
             {
@@ -69,7 +69,7 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<List<GetDoctorResponseDto>>> GetDoctors()
         {
-            var doctors = _repository.Doctor.FindAll();
+            var doctors = _repository.Doctors.FindAll();
 
             var response = _mapper.Map<List<GetDoctorResponseDto>>(doctors.ToList());
 
@@ -78,7 +78,7 @@ namespace MedicalUnitSystem.Services
 
         public async Task<bool> DoctorExistsAsync(int doctorId)
         {
-            return await _repository.Doctor.DoctorExistsAsync(doctorId);
+            return await _repository.Doctors.DoctorExistsAsync(doctorId);
         }
     }
 }
