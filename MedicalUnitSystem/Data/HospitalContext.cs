@@ -17,6 +17,7 @@ namespace MedicalUnitSystem.Data
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
         public DbSet<Gender> Genders { get; set; }
+        public DbSet<Admission> Admissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -20,7 +20,7 @@ namespace MedicalUnitSystem.Services
         }
         public Task<Result<VitalsResponseDto>> CreateVitals(int patientId, VitalsRequestDto vitals)
         {
-            var patient = _repository.Patient.FindByCondition(x => x.PatientId == patientId);
+            var patient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
             if(patient is null)
             {

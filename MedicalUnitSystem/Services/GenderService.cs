@@ -24,7 +24,7 @@ namespace MedicalUnitSystem.Services
                 GenderName = gender.GenderName
             };
 
-            _repository.Gender.Create(newGender);
+            _repository.Genders.Create(newGender);
 
             _repository.Save();
 
@@ -33,23 +33,30 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result.Success<CreateGenderResponseDto>(response));
         }
 
+        public async Task<bool> GenderExistsAsync(int genderId)
+        {
+            return await _repository.Genders.GenderExistsAsync(genderId);
+        }
+
         public Task<Result<GetGenderResponseDto>> GetGender(int genderId)
         {
-            var existingGender = _repository.Gender.FindByCondition(x => x.GenderId == genderId);
+            var existingGenderQuery = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
-            if (existingGender == null)
+            var gender = existingGenderQuery.FirstOrDefault();
+
+            if (gender == null)
             {
                 return Task.FromResult(Result.Failure<GetGenderResponseDto>($"Gender with Id:{genderId} not found"));
             }
 
-            var response = _mapper.Map<GetGenderResponseDto>(existingGender.FirstOrDefault());
+            var response = _mapper.Map<GetGenderResponseDto>(gender);
                 
             return Task.FromResult(Result<GetGenderResponseDto>.Success(response));
         }
 
         public Task<Result<List<GetGenderResponseDto>>> GetGenders()
         {
-            var genders = _repository.Gender.FindAll();
+            var genders = _repository.Genders.FindAll();
 
             var response = _mapper.Map<List<GetGenderResponseDto>>(genders.ToList());
 
@@ -58,7 +65,7 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<UpdateGenderResponseDto>> UpdateGender(int genderId, UpdateGenderRequestDto genderDetails)
         {
-            var existingGender = _repository.Gender.FindByCondition(x => x.GenderId == genderId);
+            var existingGender = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
             if (existingGender == null)
             {
@@ -69,7 +76,7 @@ namespace MedicalUnitSystem.Services
 
            updatedGender.GenderName = genderDetails.GenderName;
 
-            _repository.Gender.Update(updatedGender);
+            _repository.Genders.Update(updatedGender);
 
             _repository.Save();
 

@@ -22,6 +22,33 @@ namespace MedicalUnitSystem.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MedicalUnitSystem.Models.Admission", b =>
+                {
+                    b.Property<int>("AdmissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AdmissionId"));
+
+                    b.Property<DateTimeOffset>("AdmissionTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDischarged")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("AdmissionId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Admissions");
+                });
+
             modelBuilder.Entity("MedicalUnitSystem.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -221,19 +248,19 @@ namespace MedicalUnitSystem.Migrations
 
             modelBuilder.Entity("MedicalUnitSystem.Models.LaboratoryTestType", b =>
                 {
-                    b.Property<int>("LaboratorytestTypeId")
+                    b.Property<int>("LaboratoryTestTypeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LaboratorytestTypeId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LaboratoryTestTypeId"));
 
                     b.Property<DateTimeOffset>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("LaboratoryTestName")
+                    b.Property<string>("LaboratoryTestTypeName")
                         .HasColumnType("text");
 
-                    b.HasKey("LaboratorytestTypeId");
+                    b.HasKey("LaboratoryTestTypeId");
 
                     b.ToTable("LaboratoryTestTypes");
                 });
@@ -246,9 +273,6 @@ namespace MedicalUnitSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PatientId"));
 
-                    b.Property<DateTimeOffset>("AdmissionTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("Age")
                         .HasColumnType("integer");
 
@@ -260,9 +284,6 @@ namespace MedicalUnitSystem.Migrations
 
                     b.Property<int>("GenderId")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsEmergency")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("MedicalHistory")
                         .HasColumnType("text");
@@ -502,6 +523,17 @@ namespace MedicalUnitSystem.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("MedicalUnitSystem.Models.Admission", b =>
+                {
+                    b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("MedicalUnitSystem.Models.Consultation", b =>

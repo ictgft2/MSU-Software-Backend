@@ -1,5 +1,6 @@
 ﻿using MedicalUnitSystem;
 using MedicalUnitSystem.Data;
+using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories;
 using MedicalUnitSystem.Repositories.Contracts;
@@ -29,8 +30,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 // Configure repositories
 builder.Services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
 
-// Cons=figure Custom Services
+// Configure Custom Services
 builder.Services.AddScoped<IServiceWrapper, ServiceWrapper>();
+builder.Services.AddTransient<IPropertyCheckingService, PropertyCheckingService>();
 
 // JWT Authentication configuration
 

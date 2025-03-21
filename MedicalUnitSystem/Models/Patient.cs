@@ -20,11 +20,7 @@ namespace MedicalUnitSystem.Models
 
         public string? Email { get; set; }
         public string? Phone { get; set; }
-        public bool IsEmergency { get; set; }
-        public DateTimeOffset AdmissionTime { get; set; }
-
         public string MedicalHistory { get; set; }
-
         public ICollection<Consultation> Consultations { get; set; }
         public ICollection<LaboratoryTest> LaboratoryTests { get; set; }
         public ICollection<Vital> Vitals { get; set; }

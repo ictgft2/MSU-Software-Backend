@@ -15,8 +15,9 @@ namespace MedicalUnitSystem.Repositories
         private IPrescriptionRepository _prescriptionRepository;
         private IDoctorRepository _doctorRepository;
         private IGenderRepository _genderRepository;
+        private IAdmissionRepository _admissionRepository;
 
-        public IConsultationRepository Consultation
+        public IConsultationRepository Consultations
         {
             get
             {
@@ -29,7 +30,7 @@ namespace MedicalUnitSystem.Repositories
             }
         }
         
-        public IPatientRepository Patient
+        public IPatientRepository Patients
         {
             get
             {
@@ -41,7 +42,7 @@ namespace MedicalUnitSystem.Repositories
                 return _patient;
             }
         }
-        public ILaboratoryTestTypeRepository LaboratoryTestType
+        public ILaboratoryTestTypeRepository LaboratoryTestTypes
         {
             get
             {
@@ -53,7 +54,7 @@ namespace MedicalUnitSystem.Repositories
                 return _laboratoryTestType;
             }
         }
-        public ILaboratoryTestRepository LaboratoryTest
+        public ILaboratoryTestRepository LaboratoryTests
         {
             get
             {
@@ -66,7 +67,7 @@ namespace MedicalUnitSystem.Repositories
             }
         }
         
-        public IWaitingPatientRepository WaitingPatient
+        public IWaitingPatientRepository WaitingPatients
         {
             get
             {
@@ -91,7 +92,7 @@ namespace MedicalUnitSystem.Repositories
                 return _vitals;
             }
         }
-        public IPrescriptionRepository Prescription
+        public IPrescriptionRepository Prescriptions
         {
             get
             {
@@ -103,7 +104,7 @@ namespace MedicalUnitSystem.Repositories
                 return _prescriptionRepository;
             }
         }
-        public IDoctorRepository Doctor
+        public IDoctorRepository Doctors
         {
             get
             {
@@ -115,7 +116,7 @@ namespace MedicalUnitSystem.Repositories
                 return _doctorRepository;
             }
         }
-        public IGenderRepository Gender
+        public IGenderRepository Genders
         {
             get
             {
@@ -125,6 +126,26 @@ namespace MedicalUnitSystem.Repositories
                 }
 
                 return _genderRepository;
+            }
+        }
+        public IAdmissionRepository Admissions
+        {
+            get
+            {
+                if(_admissionRepository == null)
+                {
+                    _admissionRepository = new AdmissionRepository(_context);
+                }
+
+                return _admissionRepository;
+            }
+        }
+
+        public HospitalContext Context
+        {
+            get
+            {
+                return _context;
             }
         }
 
