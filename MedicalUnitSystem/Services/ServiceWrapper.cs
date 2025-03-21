@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
 
@@ -13,12 +14,25 @@ namespace MedicalUnitSystem.Services
         private ILaboratoryTestTypeService _laboratoryTestType;
         private IVitalsService _vitals;
         private IWaitingPatientService _waitingPatient;
-        private IDoctorService _doctorService;
-        private IGenderService _genderService;
-        private IAdmissionService _admissionService;
+        private IDoctorService _doctor;
+        private IGenderService _gender;
+        private IAdmissionService _admission;
 
         private readonly IMapper _mapper;
+        private readonly IPropertyCheckingService _propertyCheckingService;
 
+        public IAdmissionService Admission
+        {
+            get
+            {
+                if (_admission == null)
+                {
+                    _admission = new AdmissionService(_repository, _mapper);
+                }
+
+                return _admission;
+            }
+        }
 
         public IPatientService Patient
         {
@@ -26,7 +40,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_patient == null)
                 {
-                    _patient = new PatientService(_repository, _mapper, _admissionService);
+                    _patient = new PatientService(_repository, _mapper, _admission, _propertyCheckingService);
                 }
 
                 return _patient;
@@ -39,7 +53,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_consultation == null)
                 {
-                    _consultation = new ConsultationService(_repository, _mapper);
+                    _consultation = new ConsultationService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _consultation;
@@ -51,7 +65,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_laboratoryTest == null)
                 {
-                    _laboratoryTest = new LaboratoryTestService(_repository);
+                    _laboratoryTest = new LaboratoryTestService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _laboratoryTest;
@@ -63,7 +77,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_laboratoryTestType == null)
                 {
-                    _laboratoryTestType = new LaboratoryTestTypeService(_repository);
+                    _laboratoryTestType = new LaboratoryTestTypeService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _laboratoryTestType;
@@ -97,43 +111,32 @@ namespace MedicalUnitSystem.Services
         {
             get
             {
-                if(_doctorService == null)
+                if(_doctor == null)
                 {
-                    _doctorService = new DoctorService(_repository, _mapper);
+                    _doctor = new DoctorService(_repository, _mapper, _propertyCheckingService);
                 }
 
-                return _doctorService;
+                return _doctor;
             }
         }
         public IGenderService Gender
         {
             get
             {
-                if(_genderService == null)
+                if(_gender == null)
                 {
-                    _genderService = new GenderService(_repository, _mapper);
+                    _gender = new GenderService(_repository, _mapper);
                 }
 
-                return _genderService;
+                return _gender;
             }
-        }
-        public IAdmissionService Admission
-        {
-            get
-            {
-                if(_admissionService == null)
-                {
-                    _admissionService = new AdmissionService(_repository, _mapper);
-                }
+        }       
 
-                return _admissionService;
-            }
-        }
-
-        public ServiceWrapper(IRepositoryWrapper repository, IMapper mapper)
+        public ServiceWrapper(IRepositoryWrapper repository, IMapper mapper, IPropertyCheckingService propertyCheckingService)
         {
             _repository = repository;
             _mapper = mapper;
+            _propertyCheckingService = propertyCheckingService;
         }
     }
 }

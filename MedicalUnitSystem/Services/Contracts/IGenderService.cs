@@ -10,5 +10,6 @@ namespace MedicalUnitSystem.Services.Contracts
         Task<Result<UpdateGenderResponseDto>> UpdateGender(int genderId, UpdateGenderRequestDto gender);
         Task<Result<GetGenderResponseDto>> GetGender(int genderId);
         Task<Result<List<GetGenderResponseDto>>> GetGenders();
+        Task<bool> GenderExistsAsync(int genderId);
     }
 }

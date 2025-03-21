@@ -10,26 +10,29 @@ namespace MedicalUnitSystem.Profiles
         {
             CreateMap<Vital, VitalsResponseDto>();
 
-            CreateMap<Patient, CreatePatientResponseDto>()
-                .ForMember(x => x.Gender, s => s.MapFrom(src => src.Gender.GenderName));
-            CreateMap<Patient, UpdatePatientResponseDto>()
-                .ForMember(x => x.Gender, s => s.MapFrom(src => src.Gender.GenderName));
-            CreateMap<Patient, GetPatientResponseDto>()
-                .ForMember(x => x.Gender, s => s.MapFrom(src => src.Gender.GenderName));
+            CreateMap<Patient, CreatePatientResponseDto>();
+            CreateMap<Patient, UpdatePatientResponseDto>();
 
             CreateMap<Consultation, CreateConsultationResponseDto>();
 
-            CreateMap<Doctor, CreateDoctorResponseDto>()
-                .ForMember(x => x.Gender, s => s.MapFrom(src => src.Gender.GenderName));
-            CreateMap<Doctor, UpdateDoctorResponseDto>()
-                .ForMember(x => x.Gender, s => s.MapFrom(src => src.Gender.GenderName));
-            CreateMap<Doctor, GetDoctorResponseDto>()
-                .ForMember(x => x.Gender, s => s.MapFrom(src => src.Gender.GenderName));
+            CreateMap<Doctor, CreateDoctorResponseDto>();
+            CreateMap<Doctor, UpdateDoctorResponseDto>();
+            CreateMap<Doctor, GetDoctorResponseDto>();
 
             CreateMap<Gender, GetGenderResponseDto>();
             CreateMap<Gender, CreateGenderResponseDto>();
             CreateMap<Gender, UpdateGenderResponseDto>();            
-            CreateMap<Admission, CreateAdmissionResponseDto>();            
+            CreateMap<Admission, CreateAdmissionResponseDto>();     
+            
+            CreateMap<LaboratoryTestType, CreateLaboratoryTestTypeResponseDto>();            
+            CreateMap<LaboratoryTestType, GetLaboratoryTestTypeResponseDto>();            
+            
+            CreateMap<LaboratoryTest, GetLaboratoryTestResponseDto>(); 
+            CreateMap<LaboratoryTest, CreateLaboratoryTestResponseDto>(); 
+            CreateMap<LaboratoryTest, UpdateLaboratoryTestResponseDto>(); 
+            
+            CreateMap<Consultation, GetConsultationResponseDto>();
+            CreateMap<Consultation, CreateConsultationResponseDto>();
         }
     }
 }

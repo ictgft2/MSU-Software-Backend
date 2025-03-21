@@ -27,9 +27,9 @@ namespace MedicalUnitSystem.Controllers
         }
 
         [HttpGet(Name = "GetDoctors")]
-        public async Task<ActionResult<Result>> GetDoctors()
+        public async Task<ActionResult<Result>> GetDoctors([FromQuery] GetPaginatedDataRequestDto query)
         {
-            return Ok(await _serviceWrapper.Doctor.GetDoctors());
+            return Ok(await _serviceWrapper.Doctor.GetDoctors(query));
         }
 
         [HttpGet("{doctorId}", Name = "GetDoctor")]
@@ -38,7 +38,7 @@ namespace MedicalUnitSystem.Controllers
             return Ok(await _serviceWrapper.Doctor.GetDoctor(doctorId));
         }
 
-        [HttpPatch("{doctorId}")]
+        [HttpPut("{doctorId}")]
         public async Task<ActionResult<Result>> UpdateDoctor([FromRoute] int doctorId, [FromBody] UpdateDoctorRequestDto doctor)
         {
             if(!await _serviceWrapper.Doctor.DoctorExistsAsync(doctorId))

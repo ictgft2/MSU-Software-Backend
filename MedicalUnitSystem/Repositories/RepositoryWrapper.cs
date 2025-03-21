@@ -141,6 +141,14 @@ namespace MedicalUnitSystem.Repositories
             }
         }
 
+        public HospitalContext Context
+        {
+            get
+            {
+                return _context;
+            }
+        }
+
         public RepositoryWrapper(HospitalContext context)
         {
             _context = context;

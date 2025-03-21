@@ -16,5 +16,10 @@ namespace MedicalUnitSystem.Models
         public Patient Patient { get; set; }
         public Doctor Doctor { get; set; }
         public ICollection<Prescription> Prescriptions { get; set; }
+
+        public Consultation()
+        {
+            Prescriptions = new List<Prescription>();
+        }
     }
 }

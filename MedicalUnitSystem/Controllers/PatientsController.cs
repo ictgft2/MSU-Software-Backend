@@ -46,7 +46,13 @@ namespace MedicalUnitSystem.Controllers
             return Ok(await _serviceWrapper.Patient.GetPatient(patientId));
         }
 
-        [HttpPatch("{patientId}")]
+        [HttpGet(Name = "GetPatients")]
+        public async Task<ActionResult<Result>> GetPatients([FromQuery] GetPaginatedDataRequestDto query)
+        {
+            return Ok(await _serviceWrapper.Patient.GetPatients(query));
+        }
+
+        [HttpPut("{patientId}")]
         public async Task<ActionResult<Result>> UpdatePatient([FromRoute] int patientId, [FromBody] UpdatePatientRequestDto patient)
         {
             if(!await _serviceWrapper.Patient.PatientExistsAsync(patientId))

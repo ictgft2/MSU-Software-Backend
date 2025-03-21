@@ -33,16 +33,23 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result.Success<CreateGenderResponseDto>(response));
         }
 
+        public async Task<bool> GenderExistsAsync(int genderId)
+        {
+            return await _repository.Genders.GenderExistsAsync(genderId);
+        }
+
         public Task<Result<GetGenderResponseDto>> GetGender(int genderId)
         {
-            var existingGender = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
+            var existingGenderQuery = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
-            if (existingGender == null)
+            var gender = existingGenderQuery.FirstOrDefault();
+
+            if (gender == null)
             {
                 return Task.FromResult(Result.Failure<GetGenderResponseDto>($"Gender with Id:{genderId} not found"));
             }
 
-            var response = _mapper.Map<GetGenderResponseDto>(existingGender.FirstOrDefault());
+            var response = _mapper.Map<GetGenderResponseDto>(gender);
                 
             return Task.FromResult(Result<GetGenderResponseDto>.Success(response));
         }

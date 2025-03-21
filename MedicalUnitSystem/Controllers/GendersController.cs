@@ -1,5 +1,6 @@
 ﻿using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.Helpers;
+using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,10 +35,17 @@ namespace MedicalUnitSystem.Controllers
             return Ok(await _serviceWrapper.Gender.GetGender(genderId));
         }
 
-        [HttpPatch("{genderId}")]
+        [HttpPut("{genderId}")]
         public async Task<ActionResult<Result>> UpdateDoctor([FromRoute] int genderId, [FromBody] UpdateGenderRequestDto gender)
         {
-            return Ok(await _serviceWrapper.Gender.UpdateGender(genderId, gender));
+            if (!await _serviceWrapper.Gender.GenderExistsAsync(genderId))
+            {
+                return NotFound();
+            }
+
+             _serviceWrapper.Gender.UpdateGender(genderId, gender);
+
+            return NoContent();
         }
     }
 }

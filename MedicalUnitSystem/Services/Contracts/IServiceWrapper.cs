@@ -2,6 +2,7 @@
 {
     public interface IServiceWrapper
     {
+        IAdmissionService Admission { get; }
         IPatientService Patient { get; }
         IConsultationService Consultation { get; }
         ILaboratoryTestService LaboratoryTest { get; }
@@ -10,6 +11,5 @@
         IWaitingPatientService WaitingPatient { get; }
         IDoctorService Doctor { get; }
         IGenderService Gender { get; }
-        IAdmissionService Admission { get; }
     }
 }

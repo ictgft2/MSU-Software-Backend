@@ -1,4 +1,6 @@
-﻿namespace MedicalUnitSystem.Repositories.Contracts
+﻿using MedicalUnitSystem.Data;
+
+namespace MedicalUnitSystem.Repositories.Contracts
 {
     public interface IRepositoryWrapper
     {
@@ -12,6 +14,7 @@
         IDoctorRepository Doctors { get; }
         IGenderRepository Genders { get; }
         IAdmissionRepository Admissions { get; }
+        HospitalContext Context { get; }
         void Save();
     }
 }
