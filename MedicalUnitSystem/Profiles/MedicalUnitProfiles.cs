@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Models;
 
@@ -33,6 +34,10 @@ namespace MedicalUnitSystem.Profiles
             
             CreateMap<Consultation, GetConsultationResponseDto>();
             CreateMap<Consultation, CreateConsultationResponseDto>();
+            CreateMap<Prescription, GetPrescriptionResponseDto>();
+            CreateMap<CreatePrescriptionRequestDto, Prescription>();
+            
+            CreateMap<Admission, DischargePatientResponseDto>();
         }
     }
 }

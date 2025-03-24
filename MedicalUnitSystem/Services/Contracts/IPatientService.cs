@@ -11,7 +11,8 @@ namespace MedicalUnitSystem.Services.Contracts
         void UpdatePatient(int patientId, UpdatePatientRequestDto patient);
         Task<Result<GetPatientResponseDto>> GetPatient(int patientId);
         Task<PagedList<GetPatientResponseDto>> GetPatients(GetPaginatedDataRequestDto query);
-        Task<Result<CreateAdmissionResponseDto>> AdmitPatient(string patientPhoneNumber, bool PhoneNumberExists);
+        Task<Result<CreatePatientResponseDto>> AdmitPatient(string patientPhoneNumber, bool PhoneNumberExists);
+        Task<Result<DischargePatientResponseDto>> DischargePatient(DischargePatientRequestDto discharge);
         Task<bool> PatientExistsAsync(int patientId);
         Task<bool> PatientExistsAsync(string patientPhoneNumber);
     }

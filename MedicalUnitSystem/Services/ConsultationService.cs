@@ -7,6 +7,7 @@ using MedicalUnitSystem.Helpers.Enums;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalUnitSystem.Services
 {
@@ -22,12 +23,12 @@ namespace MedicalUnitSystem.Services
             _propertyCheckingService = propertyCheckingService;
         }
 
-        public Task<bool> ConsultationExistsAsync(int consultationId)
+        public async Task<bool> ConsultationExistsAsync(int consultationId)
         {
-            throw new NotImplementedException();
+            return await _repository.Consultations.ConsultationExistsAsync(consultationId);
         }
 
-        public Task<Result<CreateConsultationResponseDto>> CreateConsultation(int patientId, CreateConsultationRequestDto consultation)
+        public Task<Result<CreateConsultationResponseDto>> CreateConsultation(int doctorId, int patientId, CreateConsultationRequestDto consultation)
         {
             var existingPatientQuery = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
@@ -36,6 +37,15 @@ namespace MedicalUnitSystem.Services
             if (patient == null)
             {
                 return Task.FromResult(Result.Failure<CreateConsultationResponseDto>($"Patient with Id:{patientId} not found"));
+            }
+
+            var existingDoctorQuery = _repository.Doctors.FindByCondition(x => x.DoctorId == doctorId);
+
+            var doctor = existingDoctorQuery.FirstOrDefault();
+
+            if (doctor == null)
+            {
+                return Task.FromResult(Result.Failure<CreateConsultationResponseDto>($"Doctor with Id:{doctorId} not found"));
             }
 
             using var transaction = _repository.Context.Database.BeginTransaction();
@@ -47,7 +57,9 @@ namespace MedicalUnitSystem.Services
                     Diagnosis = consultation.Diagnosis,
                     Symptoms = consultation.Symptoms,
                     Notes = consultation.Notes,  
-                    Patient = patient
+                    PatientId = patientId,
+                    DoctorId = doctorId,
+                    FollowupDate = consultation.FollowupDate
                 };
 
                 if(consultation.Prescriptions.Count > 0)
@@ -60,7 +72,7 @@ namespace MedicalUnitSystem.Services
                             Frequency = prescription.Frequency,
                             Instructions = prescription.Instructions,
                             MedicationName = prescription.MedicationName,
-                            Consultation = newConsultation
+                            ConsultationId = newConsultation.ConsultationId
                         };
 
                         newConsultation.Prescriptions.Add(newPrescription);
@@ -72,7 +84,11 @@ namespace MedicalUnitSystem.Services
 
                 _repository.Save();
 
+                var prescriptionResponses = _mapper.Map<List<GetPrescriptionResponseDto>>(newConsultation.Prescriptions);
+
                 var response = _mapper.Map<CreateConsultationResponseDto>(newConsultation);
+
+                transaction.Commit();
 
                 return Task.FromResult(Result.Success<CreateConsultationResponseDto>(response));
             }
@@ -85,14 +101,20 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<GetConsultationResponseDto>> GetConsultation(int consultationId)
         {
-            var existingConsultation = _repository.Consultations.FindByCondition(x => x.ConsultationId == consultationId);
+            var existingConsultation = _repository.Consultations
+                .FindByCondition(x => x.ConsultationId == consultationId)
+                .Include(c => c.Patient)
+                .Include(c => c.Doctor)
+                .Include(c => c.Prescriptions);
 
-            if (existingConsultation == null)
+            var consultation = existingConsultation.FirstOrDefault();
+
+            if (consultation == null)
             {
                 return Task.FromResult(Result.Failure<GetConsultationResponseDto>($"Consultation with Id:{consultationId} not found"));
             }
 
-            var response = _mapper.Map<GetConsultationResponseDto>(existingConsultation);
+            var response = _mapper.Map<GetConsultationResponseDto>(consultation);
 
             return Task.FromResult(Result<GetConsultationResponseDto>.Success(response));
         }
@@ -148,18 +170,17 @@ namespace MedicalUnitSystem.Services
 
         public void UpdateConsultation(int consultationId, UpdateConsultationRequestDto consultationDetails)
         {
-            var existingConsultation = _repository.Consultations.FindByCondition(x => x.ConsultationId == consultationId);
+            var existingConsultation = _repository.Consultations
+                .FindByCondition(x => x.ConsultationId == consultationId)
+                .Include(c => c.Prescriptions);
 
             var consultation = existingConsultation.FirstOrDefault();
 
-            consultation.Prescriptions = consultationDetails.Prescriptions
-                .Select(p => new Prescription
-                {
-                    Dosage = p.Dosage,
-                    Frequency = p.Frequency,
-                    Instructions = p.Instructions,
-                    MedicationName = p.MedicationName
-                }).ToList();
+            // clear existing prescriptions
+            consultation.Prescriptions.Clear();
+            // map new prescriptions
+            var newPrescriptions = _mapper.Map<List<Prescription>>(consultationDetails.Prescriptions);
+            consultation.Prescriptions = newPrescriptions;
             consultation.ConsultationDate = consultationDetails.ConsultationDate;
             consultation.FollowupDate = consultationDetails.FollowupDate;
             consultation.Notes = consultationDetails.Notes;

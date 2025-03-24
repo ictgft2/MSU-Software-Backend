@@ -8,7 +8,7 @@ namespace MedicalUnitSystem.Models
         public int ConsultationId { get; set; }
         public int PatientId { get; set; }
         public int DoctorId { get; set; }
-        public DateTime ConsultationDate { get; set; }
+        public DateTime ConsultationDate { get; set; } = DateTime.UtcNow;
         public string Symptoms { get; set; }
         public string Diagnosis { get; set; }
         public string Notes { get; set; }

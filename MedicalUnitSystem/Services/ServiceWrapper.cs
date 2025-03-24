@@ -40,7 +40,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_patient == null)
                 {
-                    _patient = new PatientService(_repository, _mapper, _admission, _propertyCheckingService);
+                    _patient = new PatientService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _patient;

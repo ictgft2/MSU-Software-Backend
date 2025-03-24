@@ -1,4 +1,5 @@
 ﻿using MedicalUnitSystem.DTOs.Requests;
+using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Services.Contracts;
 using Microsoft.AspNetCore.Http;
@@ -28,16 +29,27 @@ namespace MedicalUnitSystem.Controllers
         }
 
         [HttpPost("admit")]
-        public async Task<ActionResult<Result>> AdmitPatient([FromBody] string patientPhoneNumber)
+        public async Task<ActionResult<Result>> AdmitPatient([FromBody] CreateAdmissionRequestDto admission)
         {
-            var patientExists = await _serviceWrapper.Patient.PatientExistsAsync(patientPhoneNumber);
+            var patientExists = await _serviceWrapper.Patient.PatientExistsAsync(admission.PatientPhoneNumber);
 
             var admittedPatient = await _serviceWrapper.Patient.AdmitPatient(
-                patientPhoneNumber, patientExists);
+                admission.PatientPhoneNumber, patientExists);
 
             return CreatedAtRoute("GetPatient",
                 new { patientId = admittedPatient.Data.PatientId },
                     admittedPatient);
+        }
+
+        [HttpPost("discharge")]
+        public async Task<ActionResult<Result>> DischargePatient([FromBody] DischargePatientRequestDto dischargePatient)
+        {
+            if(!await _serviceWrapper.Patient.PatientExistsAsync(dischargePatient.PatientPhoneNumber))
+            {
+                return NotFound("Patient Not Found");
+            }
+
+            return Ok(await _serviceWrapper.Patient.DischargePatient(dischargePatient));
         }
 
         [HttpGet("{patientId}", Name = "GetPatient")]
