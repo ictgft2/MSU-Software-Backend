@@ -37,6 +37,8 @@ namespace MedicalUnitSystem.Profiles
             CreateMap<Prescription, GetPrescriptionResponseDto>();
             CreateMap<CreatePrescriptionRequestDto, Prescription>();
             
+            CreateMap<Vital, GetVitalsResponseDto>();
+            
             CreateMap<Admission, DischargePatientResponseDto>();
         }
     }

@@ -78,9 +78,9 @@ namespace MedicalUnitSystem.Services
 
         public Task<Result<GetPatientResponseDto>> GetPatient(int patientId)
         {
-            var existingPatient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
+            var existingPatientQuery = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
-            var patient = existingPatient.FirstOrDefault();
+            var patient = existingPatientQuery.FirstOrDefault();
 
             if(patient == null)
             {

@@ -89,7 +89,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_vitals == null)
                 {
-                    _vitals = new VitalService(_repository, _mapper);
+                    _vitals = new VitalService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _vitals;

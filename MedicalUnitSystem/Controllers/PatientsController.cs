@@ -77,10 +77,29 @@ namespace MedicalUnitSystem.Controllers
             return NoContent();
         }
 
+        [HttpPut("{vitalsId}")]
+        public async Task<ActionResult<Result>> UpdateVitals([FromRoute] int vitalsId, [FromBody] UpdateVitalsRequestDto vitals)
+        {
+            if(!await _serviceWrapper.Vitals.VitalsExistsAsync(vitalsId))
+            {
+                return NotFound();
+            }
+
+            _serviceWrapper.Vitals.UpdateVitals(vitalsId, vitals);
+
+            return NoContent();
+        }
+
         [HttpPost("vitals/{patientId}")]
         public async Task<ActionResult<Result>> CreateVitals([FromRoute] int patientId, [FromBody] VitalsRequestDto vitals)
         {
             return Ok(await _serviceWrapper.Vitals.CreateVitals(patientId, vitals));
+        }
+
+        [HttpGet("vitals/{vitalsId}")]
+        public async Task<ActionResult<Result>> GetVitals([FromRoute] int vitalsId)
+        {
+            return Ok(await _serviceWrapper.Vitals.GetVitals(vitalsId));
         }
 
         [HttpPost("waitingpatient/{patientId}")]
