@@ -8,7 +8,7 @@ namespace MedicalUnitSystem.Repositories
     public class ConsultationRepository : Repository<Consultation>, IConsultationRepository
     {
         public ConsultationRepository(HospitalContext context): base(context) { }
-        public async Task<bool> ConsulatationExistsAsync(int consultationId)
+        public async Task<bool> ConsultationExistsAsync(int consultationId)
         {
             if (consultationId is 0 || consultationId is int.MinValue)
             {

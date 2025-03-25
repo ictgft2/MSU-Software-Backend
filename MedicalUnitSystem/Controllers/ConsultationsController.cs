@@ -20,13 +20,13 @@ namespace MedicalUnitSystem.Controllers
             _serviceWrapper = serviceWrapper;
         }
 
-        [HttpPost("{patientId}")]
-        public async Task<ActionResult<Result>> CreateConsultation([FromRoute]int patientId, [FromBody] CreateConsultationRequestDto consultation)
+        [HttpPost("{doctorId}/{patientId}")]
+        public async Task<ActionResult<Result>> CreateConsultation([FromRoute] int doctorId, [FromRoute]int patientId, [FromBody] CreateConsultationRequestDto consultation)
         {
-            var newConsultation = await _serviceWrapper.Consultation.CreateConsultation(patientId, consultation);
+            var newConsultation = await _serviceWrapper.Consultation.CreateConsultation(doctorId, patientId, consultation);
 
             return CreatedAtRoute("GetConsultation",
-                new { doctorId = newConsultation.Data.ConsultationId },
+                new { consultationId = newConsultation.Data.ConsultationId },
                 newConsultation);
         }
 
@@ -49,7 +49,7 @@ namespace MedicalUnitSystem.Controllers
             return Ok(await _serviceWrapper.Consultation.GetConsultations(query));
         }
 
-        [HttpGet("{consulatationId}", Name = "GetConsultation")]
+        [HttpGet("{consultationId}", Name = "GetConsultation")]
         public async Task<ActionResult<Result>> GetConsultation([FromRoute] int consultationId)
         {
             return Ok(await _serviceWrapper.Consultation.GetConsultation(consultationId));

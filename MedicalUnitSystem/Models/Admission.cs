@@ -9,6 +9,7 @@ namespace MedicalUnitSystem.Models
         public int PatientId { get; set; }
         public Patient Patient { get; set; }
         public DateTimeOffset AdmissionTime { get; set; }
+        public string DischargeNotes { get; set; }
         public bool IsDischarged { get; set; }
     }
 }

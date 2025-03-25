@@ -3,6 +3,7 @@ using System;
 using MedicalUnitSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedicalUnitSystem.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250324030206_Added Discharge Notes & Cosultation Date Update")]
+    partial class AddedDischargeNotesCosultationDateUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -331,9 +333,6 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<string>("Instructions")
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsDispensed")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("MedicationName")
                         .HasColumnType("text");
 
@@ -353,41 +352,17 @@ namespace MedicalUnitSystem.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("BloodPressure")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("DateOfVisit")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DiastolicBloodPressure")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HeartRate")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<int>("OxygenSaturation")
-                        .HasColumnType("integer");
-
                     b.Property<int>("PatientId")
                         .HasColumnType("integer");
-
-                    b.Property<int>("RespiratoryRate")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SystolicBloodPressure")
-                        .HasColumnType("integer");
-
-                    b.Property<double>("Temperature")
-                        .HasColumnType("double precision");
-
-                    b.Property<int>("VitalsId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("VitalsId"));
 
                     b.HasKey("Id");
 
@@ -396,13 +371,13 @@ namespace MedicalUnitSystem.Migrations
                     b.ToTable("Vitals");
                 });
 
-            modelBuilder.Entity("MedicalUnitSystem.Models.WaitingQueue", b =>
+            modelBuilder.Entity("MedicalUnitSystem.Models.WaitingPatient", b =>
                 {
-                    b.Property<int>("WaitingQueueId")
+                    b.Property<int>("WaitingPatientId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("WaitingQueueId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("WaitingPatientId"));
 
                     b.Property<bool>("AttendedTo")
                         .HasColumnType("boolean");
@@ -416,11 +391,11 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<int>("PatientId")
                         .HasColumnType("integer");
 
-                    b.HasKey("WaitingQueueId");
+                    b.HasKey("WaitingPatientId");
 
                     b.HasIndex("PatientId");
 
-                    b.ToTable("WaitingQueues");
+                    b.ToTable("WaitingPatients");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -648,7 +623,7 @@ namespace MedicalUnitSystem.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("MedicalUnitSystem.Models.WaitingQueue", b =>
+            modelBuilder.Entity("MedicalUnitSystem.Models.WaitingPatient", b =>
                 {
                     b.HasOne("MedicalUnitSystem.Models.Patient", "Patient")
                         .WithMany("Waitlists")

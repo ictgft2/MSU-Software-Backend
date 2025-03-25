@@ -5,6 +5,5 @@ namespace MedicalUnitSystem.Services.Contracts
 {
     public interface IAdmissionService
     {
-        CreateAdmissionResponseDto AdmitPatient(int patientId);
     }
 }

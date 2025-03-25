@@ -11,6 +11,7 @@ namespace MedicalUnitSystem.Models
         public string Dosage { get; set; }
         public string Frequency { get; set; }
         public string  Instructions { get; set; }
+        public bool IsDispensed { get; set; } = false;
         public Consultation Consultation { get; set; }
         public DateTimeOffset PrescribedDate { get; set; } = DateTimeOffset.UtcNow;
     }

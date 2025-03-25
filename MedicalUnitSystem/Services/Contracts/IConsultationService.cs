@@ -7,7 +7,7 @@ namespace MedicalUnitSystem.Services.Contracts
 {
     public interface IConsultationService
     {
-        Task<Result<CreateConsultationResponseDto>> CreateConsultation(int patientId, CreateConsultationRequestDto consultation);
+        Task<Result<CreateConsultationResponseDto>> CreateConsultation(int doctorId, int patientId, CreateConsultationRequestDto consultation);
         void UpdateConsultation( int consultationId, UpdateConsultationRequestDto consultation);
         Task<Result<GetConsultationResponseDto>> GetConsultation(int consultationId);
         Task<PagedList<GetConsultationResponseDto>> GetConsultations(GetPaginatedDataRequestDto query);

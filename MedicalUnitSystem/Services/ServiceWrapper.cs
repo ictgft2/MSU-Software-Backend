@@ -13,10 +13,11 @@ namespace MedicalUnitSystem.Services
         private ILaboratoryTestService  _laboratoryTest;
         private ILaboratoryTestTypeService _laboratoryTestType;
         private IVitalsService _vitals;
-        private IWaitingPatientService _waitingPatient;
+        private IWaitingQueueService _waitingQueue;
         private IDoctorService _doctor;
         private IGenderService _gender;
         private IAdmissionService _admission;
+        private IPrescriptionService _prescription;
 
         private readonly IMapper _mapper;
         private readonly IPropertyCheckingService _propertyCheckingService;
@@ -40,7 +41,7 @@ namespace MedicalUnitSystem.Services
             {
                 if(_patient == null)
                 {
-                    _patient = new PatientService(_repository, _mapper, _admission, _propertyCheckingService);
+                    _patient = new PatientService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _patient;
@@ -89,22 +90,22 @@ namespace MedicalUnitSystem.Services
             {
                 if(_vitals == null)
                 {
-                    _vitals = new VitalService(_repository, _mapper);
+                    _vitals = new VitalService(_repository, _mapper, _propertyCheckingService);
                 }
 
                 return _vitals;
             }
         }
-        public IWaitingPatientService WaitingPatient
+        public IWaitingQueueService WaitingQueue
         {
             get
             {
-                if(_waitingPatient == null)
+                if(_waitingQueue == null)
                 {
-                    _waitingPatient = new WaitPatientService(_repository, _mapper);
+                    _waitingQueue = new WaitingQueueService(_repository, _mapper, _propertyCheckingService);
                 }
 
-                return _waitingPatient;
+                return _waitingQueue;
             }
         }
         public IDoctorService Doctor
@@ -129,6 +130,18 @@ namespace MedicalUnitSystem.Services
                 }
 
                 return _gender;
+            }
+        } 
+        public IPrescriptionService Prescription
+        {
+            get
+            {
+                if(_prescription == null)
+                {
+                    _prescription = new PrescriptionService(_repository, _mapper);
+                }
+
+                return _prescription;
             }
         }       
 

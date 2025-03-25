@@ -9,7 +9,7 @@ namespace MedicalUnitSystem.DTOs.Responses
         public string Symptoms { get; set; }
         public string Diagnosis { get; set; }
         public string Notes { get; set; }
-        public List<CreatePrescriptionRequestDto> Prescriptions { get; set; }
+        public List<GetPrescriptionResponseDto> Prescriptions { get; set; }
         public DateTime FollowupDate { get; set; }
     }
 }

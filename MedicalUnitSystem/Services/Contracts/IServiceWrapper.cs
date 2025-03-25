@@ -8,7 +8,8 @@
         ILaboratoryTestService LaboratoryTest { get; }
         ILaboratoryTestTypeService LaboratoryTestType { get; }
         IVitalsService Vitals { get; }
-        IWaitingPatientService WaitingPatient { get; }
+        IWaitingQueueService WaitingQueue { get; }
+        IPrescriptionService Prescription { get; }
         IDoctorService Doctor { get; }
         IGenderService Gender { get; }
     }

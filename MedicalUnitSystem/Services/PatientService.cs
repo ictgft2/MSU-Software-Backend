@@ -12,18 +12,22 @@ namespace MedicalUnitSystem.Services
 {
     public class PatientService : IPatientService
     {
+        #region Properties
         private readonly IRepositoryWrapper _repository;
-        private readonly IAdmissionService _admissionService;
         private readonly IPropertyCheckingService _propertyCheckingService;
         private readonly IMapper _mapper;
+        #endregion
 
-        public PatientService(IRepositoryWrapper repository, IMapper mapper, IAdmissionService admissionService, IPropertyCheckingService propertyCheckingService) 
+        #region Constructor
+        public PatientService(IRepositoryWrapper repository, IMapper mapper, IPropertyCheckingService propertyCheckingService) 
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _admissionService = admissionService ?? throw new ArgumentNullException(nameof(mapper));
             _propertyCheckingService = propertyCheckingService;
         }
+        #endregion
+
+        #region Methods
         public Task<Result<CreatePatientResponseDto>> CreatePatient(CreatePatientRequestDto patient)
         {
             var newPatient = MakePatient(patient);            
@@ -32,6 +36,7 @@ namespace MedicalUnitSystem.Services
 
             return Task.FromResult(Result<CreatePatientResponseDto>.Success(response));
         }
+
         private Patient MakePatient(CreatePatientRequestDto patient) 
         {
             var newPatientNumber = GenerateUniquePatientNumber();
@@ -53,6 +58,7 @@ namespace MedicalUnitSystem.Services
 
             return newPatient;
         }
+
         public void UpdatePatient(int patientId, UpdatePatientRequestDto patientDetails)
         {
             var existingPatient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
@@ -69,11 +75,12 @@ namespace MedicalUnitSystem.Services
 
             _repository.Save();
         }
+
         public Task<Result<GetPatientResponseDto>> GetPatient(int patientId)
         {
-            var existingPatient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
+            var existingPatientQuery = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
-            var patient = existingPatient.FirstOrDefault();
+            var patient = existingPatientQuery.FirstOrDefault();
 
             if(patient == null)
             {
@@ -84,25 +91,88 @@ namespace MedicalUnitSystem.Services
 
             return Task.FromResult(Result<GetPatientResponseDto>.Success(response));
         }
-        public async Task<Result<CreateAdmissionResponseDto>> AdmitPatient(string patientPhoneNumber, bool phoneNumberExists)
+
+        public Task<Result<DischargePatientResponseDto>> DischargePatient(DischargePatientRequestDto discharge)
         {
-            var existingPatient = phoneNumberExists ?
-               await _repository.Patients.FindByCondition(x => x.Phone == patientPhoneNumber).FirstOrDefaultAsync() :
+            var existingPatientQuery = _repository.Patients.FindByCondition(p => p.Phone == discharge.PatientPhoneNumber);
+
+            var patient = existingPatientQuery.FirstOrDefault();
+
+            if (patient == null)
+            {
+                return Task.FromResult(Result.Failure<DischargePatientResponseDto>($"Patient with phone number:{discharge.PatientPhoneNumber} not found"));
+            }
+
+            var admissionDetailsQuery = _repository.Admissions.FindByCondition(a => a.PatientId == patient.PatientId & a.IsDischarged == true);
+
+            var admission = admissionDetailsQuery.FirstOrDefault();
+
+            if(admission is not null)
+            {
+                admission.IsDischarged = true;
+                admission.DischargeNotes = discharge.DischargeNotes;
+
+                _repository.Admissions.Update(admission);
+
+                _repository.Save();
+
+                var response = _mapper.Map<DischargePatientResponseDto>(admission);
+
+                return Task.FromResult(Result.Success<DischargePatientResponseDto>(response));
+            }
+
+            return Task.FromResult(Result.Failure<DischargePatientResponseDto>($"No Admission Record for Patient with Patient Number:{patient.PatientNumber}"));
+        }
+
+        public void AdmitPatient(int patientId)
+        {
+            var existingAdmittedPatientQuery = _repository.Admissions.FindByCondition(a => a.PatientId == patientId & a.IsDischarged == false);
+
+            var admittedPatient = existingAdmittedPatientQuery.FirstOrDefault();
+
+            if (admittedPatient == null)
+            {
+                throw new Exception("Patient is currently admitted");
+            }
+
+            var newAdmission = new Admission
+            {
+                PatientId = patientId,
+                AdmissionTime = DateTimeOffset.UtcNow,
+                IsDischarged = false
+            };
+
+            _repository.Admissions.Create(newAdmission);
+
+            _repository.Save();
+        }
+
+        public async Task<Result<CreatePatientResponseDto>> AdmitPatient(string patientPhoneNumber, bool phoneNumberExists)
+        {
+            // check if the patient phone number exist
+            // if it does, return the existing patient
+            // if not create a new patient with the patient phone number
+            var patient = phoneNumberExists ?
+               await _repository.Patients
+               .FindByCondition(x => x.Phone == patientPhoneNumber)
+               .FirstOrDefaultAsync() :
                 MakePatient(
-                    new CreatePatientRequestDto { 
-                        Age = 0, 
-                        Email = "", 
-                        Name = "", 
-                        GenderId = 1, 
-                        Phone = patientPhoneNumber 
+                    new CreatePatientRequestDto
+                    {
+                        Age = 0,
+                        Email = "",
+                        Name = "",
+                        GenderId = 1,
+                        Phone = patientPhoneNumber
                     });
 
-            var admittedPatient = _admissionService.AdmitPatient(existingPatient.PatientId);
+            AdmitPatient(patient.PatientId);
 
-            var response = _mapper.Map<CreateAdmissionResponseDto>(admittedPatient);
+            var response = _mapper.Map<CreatePatientResponseDto>(patient);
 
-            return Result<CreateAdmissionResponseDto>.Success(response);
+            return Result<CreatePatientResponseDto>.Success(response);
         }
+
         private string GenerateUniquePatientNumber()
         {
             Random random = new Random();
@@ -173,5 +243,7 @@ namespace MedicalUnitSystem.Services
 
             return patients;
         }
+
+        #endregion
     }
 }

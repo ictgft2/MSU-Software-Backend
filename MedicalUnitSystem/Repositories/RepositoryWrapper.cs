@@ -11,7 +11,7 @@ namespace MedicalUnitSystem.Repositories
         private ILaboratoryTestRepository _laboratoryTest;
         private ILaboratoryTestTypeRepository _laboratoryTestType;
         private IVitalsRepository _vitals;
-        private IWaitingPatientRepository _waitingPatient;
+        private IWaitingQueueRepository _waitingQueue;
         private IPrescriptionRepository _prescriptionRepository;
         private IDoctorRepository _doctorRepository;
         private IGenderRepository _genderRepository;
@@ -67,16 +67,16 @@ namespace MedicalUnitSystem.Repositories
             }
         }
         
-        public IWaitingPatientRepository WaitingPatients
+        public IWaitingQueueRepository WaitingQueues
         {
             get
             {
-                if(_waitingPatient == null)
+                if(_waitingQueue == null)
                 {
-                    _waitingPatient = new WaitngPatientRepository(_context);
+                    _waitingQueue = new WaitngQueueRepository(_context);
                 }
 
-                return _waitingPatient;
+                return _waitingQueue;
             }
         } 
         
