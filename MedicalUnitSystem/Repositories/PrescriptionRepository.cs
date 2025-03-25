@@ -10,5 +10,15 @@ namespace MedicalUnitSystem.Repositories
         public PrescriptionRepository(HospitalContext context) : base(context)
         {
         }
+
+        public async Task<bool> PrescriptionExistsAsync(int prescriptionId)
+        {
+            if (prescriptionId is 0 || prescriptionId is int.MinValue)
+            {
+                throw new ArgumentNullException(nameof(prescriptionId));
+            }
+
+            return await Context.Prescriptions.AnyAsync(d => d.PrescriptionId == prescriptionId);
+        }
     }
 }

@@ -13,10 +13,11 @@ namespace MedicalUnitSystem.Services
         private ILaboratoryTestService  _laboratoryTest;
         private ILaboratoryTestTypeService _laboratoryTestType;
         private IVitalsService _vitals;
-        private IWaitingPatientService _waitingPatient;
+        private IWaitingQueueService _waitingQueue;
         private IDoctorService _doctor;
         private IGenderService _gender;
         private IAdmissionService _admission;
+        private IPrescriptionService _prescription;
 
         private readonly IMapper _mapper;
         private readonly IPropertyCheckingService _propertyCheckingService;
@@ -95,16 +96,16 @@ namespace MedicalUnitSystem.Services
                 return _vitals;
             }
         }
-        public IWaitingPatientService WaitingPatient
+        public IWaitingQueueService WaitingQueue
         {
             get
             {
-                if(_waitingPatient == null)
+                if(_waitingQueue == null)
                 {
-                    _waitingPatient = new WaitPatientService(_repository, _mapper);
+                    _waitingQueue = new WaitingQueueService(_repository, _mapper, _propertyCheckingService);
                 }
 
-                return _waitingPatient;
+                return _waitingQueue;
             }
         }
         public IDoctorService Doctor
@@ -129,6 +130,18 @@ namespace MedicalUnitSystem.Services
                 }
 
                 return _gender;
+            }
+        } 
+        public IPrescriptionService Prescription
+        {
+            get
+            {
+                if(_prescription == null)
+                {
+                    _prescription = new PrescriptionService(_repository, _mapper);
+                }
+
+                return _prescription;
             }
         }       
 

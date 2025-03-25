@@ -4,6 +4,7 @@ namespace MedicalUnitSystem.DTOs.Responses
 {
     public class CreateVitalsResponseDto
     {
+        public int PatientId { get; set; }
         public int HeartRate { get; set; }
         public int SystolicBloodPressure { get; set; }
         public int DiastolicBloodPressure { get; set; }

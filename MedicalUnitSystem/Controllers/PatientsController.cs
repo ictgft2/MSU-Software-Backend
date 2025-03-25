@@ -77,7 +77,7 @@ namespace MedicalUnitSystem.Controllers
             return NoContent();
         }
 
-        [HttpPut("{vitalsId}")]
+        [HttpPut("vitals/{vitalsId}")]
         public async Task<ActionResult<Result>> UpdateVitals([FromRoute] int vitalsId, [FromBody] UpdateVitalsRequestDto vitals)
         {
             if(!await _serviceWrapper.Vitals.VitalsExistsAsync(vitalsId))
@@ -91,27 +91,21 @@ namespace MedicalUnitSystem.Controllers
         }
 
         [HttpPost("vitals/{patientId}")]
-        public async Task<ActionResult<Result>> CreateVitals([FromRoute] int patientId, [FromBody] VitalsRequestDto vitals)
+        public async Task<ActionResult<Result>> CreatePatientVitals([FromRoute] int patientId, [FromBody] VitalsRequestDto vitals)
         {
             return Ok(await _serviceWrapper.Vitals.CreateVitals(patientId, vitals));
         }
 
         [HttpGet("vitals/{vitalsId}")]
-        public async Task<ActionResult<Result>> GetVitals([FromRoute] int vitalsId)
+        public async Task<ActionResult<Result>> GetPatientVitals([FromRoute] int vitalsId)
         {
             return Ok(await _serviceWrapper.Vitals.GetVitals(vitalsId));
         }
 
-        [HttpPost("waitingpatient/{patientId}")]
-        public async Task<ActionResult<Result>> CreateWaitingPatient([FromRoute] int patientId)
+        [HttpGet("vitals")]
+        public async Task<ActionResult<Result>> GetAllPatientVitals([FromQuery] GetPaginatedDataRequestDto query)
         {
-            return Ok(await _serviceWrapper.WaitingPatient.CreateWaitingPatient(patientId));
-        }
-
-        [HttpGet("waitingpatients")]
-        public async Task<ActionResult<Result>> WaitingPatients()
-        {
-            return Ok(await _serviceWrapper.WaitingPatient.GetWaitingPatientslist());
+            return Ok(await _serviceWrapper.Vitals.GetAllPatientVitals(query));
         }
     }
 }

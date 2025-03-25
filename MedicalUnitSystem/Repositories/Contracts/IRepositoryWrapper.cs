@@ -9,7 +9,7 @@ namespace MedicalUnitSystem.Repositories.Contracts
         ILaboratoryTestRepository LaboratoryTests { get; }
         ILaboratoryTestTypeRepository LaboratoryTestTypes { get; }
         IVitalsRepository Vitals { get; }
-        IWaitingPatientRepository WaitingPatients { get; }
+        IWaitingQueueRepository WaitingQueues { get; }
         IPrescriptionRepository Prescriptions { get; }
         IDoctorRepository Doctors { get; }
         IGenderRepository Genders { get; }

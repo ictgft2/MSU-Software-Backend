@@ -3,6 +3,7 @@ using System;
 using MedicalUnitSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedicalUnitSystem.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250325073318_Change WaitingPatient to WaitingQueue")]
+    partial class ChangeWaitingPatienttoWaitingQueue
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -331,9 +333,6 @@ namespace MedicalUnitSystem.Migrations
                     b.Property<string>("Instructions")
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsDispensed")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("MedicationName")
                         .HasColumnType("text");
 
@@ -420,7 +419,7 @@ namespace MedicalUnitSystem.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.ToTable("WaitingQueues");
+                    b.ToTable("WaitingPatients");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

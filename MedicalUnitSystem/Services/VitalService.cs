@@ -22,7 +22,7 @@ namespace MedicalUnitSystem.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _propertyCheckingService = propertyCheckingService;
         }
-        public Task<Result<VitalsResponseDto>> CreateVitals(int patientId, VitalsRequestDto vitalDetails)
+        public Task<Result<CreateVitalsResponseDto>> CreateVitals(int patientId, VitalsRequestDto vitalDetails)
         {
             var existingPatientQuery = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
@@ -30,7 +30,7 @@ namespace MedicalUnitSystem.Services
 
             if(existingPatientQuery is null)
             {
-                return Task.FromResult(Result.Failure<VitalsResponseDto>($"Patient with Id:{patientId} not found"));
+                return Task.FromResult(Result.Failure<CreateVitalsResponseDto>($"Patient with Id:{patientId} not found"));
             }
 
             var newVitals = new Vital
@@ -41,16 +41,17 @@ namespace MedicalUnitSystem.Services
                RespiratoryRate = vitalDetails.RespiratoryRate,
                SystolicBloodPressure = vitalDetails.SystolicBloodPressure,
                OxygenSaturation = vitalDetails.OxygenSaturation,
-               Temperature = vitalDetails.Temperature
+               Temperature = vitalDetails.Temperature,
+               PatientId = patientId
             };
 
             _repository.Vitals.Create(newVitals);
 
             _repository.Save();
 
-            var response = _mapper.Map<VitalsResponseDto>(newVitals);
+            var response = _mapper.Map<CreateVitalsResponseDto>(newVitals);
 
-            return Task.FromResult(Result<VitalsResponseDto>.Success(response));
+            return Task.FromResult(Result<CreateVitalsResponseDto>.Success(response));
         }
 
         public void UpdateVitals(int vitalId, UpdateVitalsRequestDto vitalsDetails)
@@ -89,7 +90,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetVitalsResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetVitalsResponseDto>> GetVitals(GetPaginatedDataRequestDto query)
+        public async Task<PagedList<GetVitalsResponseDto>> GetAllPatientVitals(GetPaginatedDataRequestDto query)
         {
             IQueryable<Vital> vitalsQuery = _repository.Vitals.FindAll();
 
@@ -122,7 +123,8 @@ namespace MedicalUnitSystem.Services
                     HeartRate = d.HeartRate,
                     DiastolicBloodPressure = d.DiastolicBloodPressure,
                     SystolicBloodPressure = d.SystolicBloodPressure,
-                    Temperature = d.Temperature
+                    Temperature = d.Temperature,
+                    PatientId = d.PatientId
                 });
 
             var patients = await PagedList<GetVitalsResponseDto>.CreateAsync(vitalsResponsesQuery, query.page, query.pageSize);

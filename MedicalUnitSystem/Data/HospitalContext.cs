@@ -13,7 +13,7 @@ namespace MedicalUnitSystem.Data
         public DbSet<LaboratoryTest> LaboratoryTests { get; set; }
         public DbSet<LaboratoryTestType> LaboratoryTestTypes { get; set; }
         public DbSet<Vital> Vitals { get; set; }
-        public DbSet<WaitingPatient> WaitingPatients { get; set; }
+        public DbSet<WaitingQueue> WaitingQueues { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
         public DbSet<Gender> Genders { get; set; }

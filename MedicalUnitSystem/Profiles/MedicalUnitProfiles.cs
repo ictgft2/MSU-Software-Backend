@@ -40,6 +40,9 @@ namespace MedicalUnitSystem.Profiles
             CreateMap<Vital, GetVitalsResponseDto>();
             
             CreateMap<Admission, DischargePatientResponseDto>();
+            
+            CreateMap<WaitingQueue, AddPatientToWaitingQueueResponseDto>();
+            CreateMap<WaitingQueue, GetWaitingQueueResponseDto>();
         }
     }
 }
