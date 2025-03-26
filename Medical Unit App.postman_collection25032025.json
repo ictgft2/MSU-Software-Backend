@@ -1,0 +1,631 @@
+{
+	"info": {
+		"_postman_id": "470bc0ca-fec9-411c-b4ea-6d546bea67e2",
+		"name": "Medical Unit App",
+		"description": "APIs with corresponding endpoints for Medical Unit App",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33505386"
+	},
+	"item": [
+		{
+			"name": "Create Doctor",
+			"request": {
+				"method": "POST",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get Doctor",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get Doctors",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update Doctor",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Shola Ogunbiyi\",\r\n  \"genderId\": 2,\r\n  \"email\": \"shola@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/doctors/1",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"doctors",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Genders",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Gender",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"genderName\": \"Female\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/genders",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"genders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Gender",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update Gender",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"genderName\":\"Female\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/genders/2",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"genders",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Patient",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Name\": \"Shedrack Gomes\",\r\n  \"Age\": 30,\r\n  \"GenderId\": 1,\r\n  \"Email\": \"shedrack.gomes@gmail.com\",\r\n  \"Phone\": \"123-456-7890\",\r\n  \"MedicalHistory\": \"No known allergies\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/patients",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"patients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Patient",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Name\": \"Shedrack Gomes\",\r\n  \"Age\": 30,\r\n  \"GenderId\": 1,\r\n  \"Email\": \"shedrack.gomes@gmail.com\",\r\n  \"Phone\": \"123-456-7890\",\r\n  \"MedicalHistory\": \"No known allergies\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/patients/3",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"patients",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Patient",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}api/patients/3",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"patients",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Patients",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Consultation",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ConsultationDate\": \"2025-03-21T14:30:00Z\",\r\n  \"Symptoms\": \"Fever, headache, and fatigue\",\r\n  \"Diagnosis\": \"Viral infection\",\r\n  \"Notes\": \"Patient advised to rest and stay hydrated\",\r\n  \"Prescriptions\": [\r\n    {\r\n      \"MedicationName\": \"Ibuprofen\",\r\n      \"Dosage\": \"200mg\",\r\n      \"Frequency\": \"Twice a day\",\r\n      \"Instructions\": \"Take with food\"\r\n    },\r\n    {\r\n      \"MedicationName\": \"Paracetamol\",\r\n      \"Dosage\": \"500mg\",\r\n      \"Frequency\": \"Three times a day\",\r\n      \"Instructions\": \"Take with plenty of water\"\r\n    }\r\n  ],\r\n  \"FollowupDate\": \"2025-04-01T10:00:00Z\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/consultations/1/3",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"consultations",
+						"1",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Consultation",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update Consultation",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ConsultationDate\": \"2025-03-21T14:30:00Z\",\r\n  \"Symptoms\": \"Fever, headache, and fatigue\",\r\n  \"Diagnosis\": \"Viral infection\",\r\n  \"Notes\": \"Patient advised to rest and stay hydrated\",\r\n  \"Prescriptions\": [\r\n    {\r\n      \"MedicationName\": \"Ibuprofen\",\r\n      \"Dosage\": \"200mg\",\r\n      \"Frequency\": \"Twice a day\",\r\n      \"Instructions\": \"Take with food\"\r\n    },\r\n    {\r\n      \"MedicationName\": \"Paracetamol\",\r\n      \"Dosage\": \"500mg\",\r\n      \"Frequency\": \"Three times a day\",\r\n      \"Instructions\": \"Take with plenty of water\"\r\n    }\r\n  ],\r\n  \"FollowupDate\": \"2025-04-01T10:00:00Z\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/consultations/2",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"consultations",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Consultations",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Laboratory Test Type",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"LaboratoryTestTypeName\":\"Urinalysis\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/laboratorytesttypes",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"laboratorytesttypes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Laboratory Test Type",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"LaboratoryTestTypeName\":\"Basic Metabolic Panel (BMP)\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/laboratorytesttypes/1",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"laboratorytesttypes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Laboratory Test Type",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get laboratory Test Types",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Laboratory Test",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"LaboratoryTestTypeId\": 2,\r\n  \"PatientId\": 3\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/laboratorytests",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"laboratorytests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Laboratory Test",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}api/laboratorytests/1",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"laboratorytests",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Laboratory Test",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"LaboratoryTestTypeId\": 1,\r\n  \"PatientId\": 3\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/laboratorytests/3",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"laboratorytests",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Laboratory Tests",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Admission",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"PatientPhoneNumber\": \"123-456-9890\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/patients/admit",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"patients",
+						"admit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Discharge Patient",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Patient Vitals",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"HeartRate\": 75,\r\n  \"SystolicBloodPressure\": 120,\r\n  \"DiastolicBloodPressure\": 80,\r\n  \"Temperature\": 36.8,\r\n  \"RespiratoryRate\": 16,\r\n  \"OxygenSaturation\": 98,\r\n  \"Notes\": \"Patient is stable with no signs of distress.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/patients/vitals/4",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"patients",
+						"vitals",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Patient Vitals",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update Patient Vitals",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"HeartRate\": 95,\r\n  \"SystolicBloodPressure\": 135,\r\n  \"DiastolicBloodPressure\": 85,\r\n  \"Temperature\": 38.2,\r\n  \"RespiratoryRate\": 20,\r\n  \"OxygenSaturation\": 94,\r\n  \"Notes\": \"Patient shows mild fever and elevated heart rate.\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/patients/vitals/1",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"patients",
+						"vitals",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Patient Vitals",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Add Patient To Waiting Queue",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}api/waitingqueues/4",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"waitingqueues",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Waiting Queue",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update Waiting Queue",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"PatientId\": 4,\r\n  \"AttendedTo\": false\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/waitingqueues/1",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"waitingqueues",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Waiting Queues",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Dispense Drugs",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Prescriptions\": [8, 7]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/prescriptions/dispense",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"prescriptions",
+						"dispense"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
