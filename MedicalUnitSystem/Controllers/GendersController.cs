@@ -43,7 +43,7 @@ namespace MedicalUnitSystem.Controllers
                 return NotFound();
             }
 
-             _serviceWrapper.Gender.UpdateGender(genderId, gender);
+             await _serviceWrapper.Gender.UpdateGender(genderId, gender);
 
             return NoContent();
         }
