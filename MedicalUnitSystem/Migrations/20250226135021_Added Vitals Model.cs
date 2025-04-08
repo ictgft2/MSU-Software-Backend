@@ -14,7 +14,7 @@ namespace MedicalUnitSystem.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PatientId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PatientId = table.Column<int>(type: "integer", nullable: false),
                     BloodPressure = table.Column<string>(type: "text", nullable: true),
                     DateOfVisit = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PatientId1 = table.Column<int>(type: "integer", nullable: true)

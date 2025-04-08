@@ -11,8 +11,8 @@ namespace MedicalUnitSystem.Models
         public string Name { get; set; }
         public int GenderId { get; set; }
 
-        public string? Email { get; set; }
-        public string? Phone { get; set; }
+        public string Email { get; set; } = null;
+        public string Phone { get; set; } = null;
         public Gender Gender { get; set; }
         public ICollection<Consultation> Consultations { get; set; }
     }

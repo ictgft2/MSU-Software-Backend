@@ -11,7 +11,7 @@ namespace MedicalUnitSystem.DTOs.Requests
         public int GenderId { get; set; }
 
         public string Email { get; set; }
-        public string? Phone { get; set; }
+        public string Phone { get; set; } = null;
 
         public string MedicalHistory { get; set; }
     }

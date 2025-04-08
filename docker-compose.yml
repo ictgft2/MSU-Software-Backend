@@ -1,0 +1,35 @@
+services:
+  medicalunitsystem:
+    image: ${DOCKER_REGISTRY-}medicalunitsystem
+    build:
+      context: .
+      dockerfile: MedicalUnitSystem/Dockerfile
+    ports:
+     - "5000:5000"
+     - "5001:5001"
+  postgresdb:
+     image: postgres:latest
+     container_name: postgresdb
+     restart: always
+     ports:
+         - "5432:5432"
+     environment:
+         POSTGRES_DB: MedicalUnitSystem
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: postgres
+     volumes:
+         - local_pgdata:/var/lib/postgressql/data
+  pgadmin:
+      image: dpage/pgadmin4
+      container_name: pgadmin4_container
+      restart: always
+      ports:
+          - "8081:80"
+      environment:
+          PGADMIN_DEFAULT_EMAIL: david@gmail.com
+          PGADMIN_DEFAULT_PASSWORD: test1234
+      volumes:
+          - pgadmin-data:/var/lib/pgadmin
+volumes:
+   local_pgdata:
+   pgadmin-data:
