@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Configure EF Core to use Npgsql with connection string
-var connectionString = builder.Configuration.GetConnectionString("DefaultContainerConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<HospitalContext>(options =>
     options.UseNpgsql(connectionString));
 

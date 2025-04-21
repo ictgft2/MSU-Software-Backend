@@ -20,7 +20,10 @@ namespace MedicalUnitSystem.Controllers
         [HttpPost]        
         public async Task<ActionResult<Result>> CreateGender([FromBody] CreateGenderRequestDto gender)
         {
-            return Ok(await _serviceWrapper.Gender.CreateGender(gender));
+            var newGender = await _serviceWrapper.Gender.CreateGender(gender);
+            return CreatedAtRoute("GetGender",
+                new { genderId = newGender.Data.GenderId },
+                newGender);
         }
 
         [HttpGet]
@@ -29,7 +32,7 @@ namespace MedicalUnitSystem.Controllers
             return Ok(await _serviceWrapper.Gender.GetGenders());
         }
 
-        [HttpGet("{genderId}")]
+        [HttpGet("{genderId}", Name = "GetGender")]
         public async Task<ActionResult<Result>> GetGender([FromRoute] int genderId)
         {
             return Ok(await _serviceWrapper.Gender.GetGender(genderId));
