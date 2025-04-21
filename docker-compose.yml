@@ -5,8 +5,9 @@ services:
       context: .
       dockerfile: MedicalUnitSystem/Dockerfile
     ports:
-     - "5000:5000"
-     - "5001:5001"
+     - "5000:80"
+    environment:
+     - ConnectionStrings__DefaultConnection=Host=postgresdb;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
   postgresdb:
      image: postgres:latest
      container_name: postgresdb
@@ -14,9 +15,15 @@ services:
      ports:
          - "5432:5432"
      environment:
-         POSTGRES_DB: MedicalUnitSystem
-         POSTGRES_USER: postgres
-         POSTGRES_PASSWORD: postgres
+         POSTGRES_DB: ${POSTRES_DB}
+         POSTGRES_USER: ${POSTGRES_USER}
+         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+     healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
      volumes:
          - local_pgdata:/var/lib/postgressql/data
   pgadmin:
