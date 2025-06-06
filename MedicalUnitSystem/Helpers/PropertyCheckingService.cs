@@ -8,7 +8,7 @@ namespace MedicalUnitSystem.Helpers
         {
             if(propertyName is not null)
             {
-                var propertyInfo = typeof(T).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Instance);
+                var propertyInfo = typeof(T).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
 
                 if(propertyInfo == null)
                 {
