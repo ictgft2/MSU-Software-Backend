@@ -69,14 +69,7 @@ namespace MedicalUnitSystem.Services
 
             if (propertyInfo is not null)
             {
-                if (query.sortOrder == SortOrder.Descending)
-                {
-                    laboratoryTestTypesQuery = laboratoryTestTypesQuery.OrderByDescending(d => propertyInfo.GetValue(d, null));
-                }
-                else
-                {
-                    laboratoryTestTypesQuery = laboratoryTestTypesQuery.OrderBy(d => propertyInfo.GetValue(d, null));
-                }
+                laboratoryTestTypesQuery = laboratoryTestTypesQuery.OrderByProperty(propertyInfo, query.sortOrder); 
             }
 
             var laboratoryTestTypeResponsesQuery = laboratoryTestTypesQuery

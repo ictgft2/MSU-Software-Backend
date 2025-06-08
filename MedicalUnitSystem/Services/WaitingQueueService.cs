@@ -82,14 +82,7 @@ namespace MedicalUnitSystem.Services
 
             if (propertyInfo is not null)
             {
-                if (query.sortOrder == SortOrder.Descending)
-                {
-                    waitingQueuesQuery = waitingQueuesQuery.OrderByDescending(d => propertyInfo.GetValue(d, null));
-                }
-                else
-                {
-                    waitingQueuesQuery = waitingQueuesQuery.OrderBy(d => propertyInfo.GetValue(d, null));
-                }
+               waitingQueuesQuery = waitingQueuesQuery.OrderByProperty(propertyInfo, query.sortOrder);
             }
 
             var waitingQueueResponsesQuery = waitingQueuesQuery
