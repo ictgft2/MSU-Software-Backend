@@ -86,14 +86,7 @@ namespace MedicalUnitSystem.Services
 
             if(propertyInfo is not null)
             {
-                if(query.sortOrder == SortOrder.Descending)
-                {
-                    doctorsQuery = doctorsQuery.OrderByDescending(d => propertyInfo.GetValue(d, null));
-                }
-                else
-                {
-                    doctorsQuery = doctorsQuery.OrderBy(d => propertyInfo.GetValue(d, null));
-                }
+                doctorsQuery = doctorsQuery.OrderByProperty(propertyInfo, query.sortOrder);
             }
 
             var doctorResponsesQuery = doctorsQuery

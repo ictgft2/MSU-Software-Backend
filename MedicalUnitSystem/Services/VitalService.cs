@@ -104,14 +104,7 @@ namespace MedicalUnitSystem.Services
 
             if (propertyInfo is not null)
             {
-                if (query.sortOrder == SortOrder.Descending)
-                {
-                    vitalsQuery = vitalsQuery.OrderByDescending(d => propertyInfo.GetValue(d, null));
-                }
-                else
-                {
-                    vitalsQuery = vitalsQuery.OrderBy(d => propertyInfo.GetValue(d, null));
-                }
+               vitalsQuery = vitalsQuery.OrderByProperty(propertyInfo, query.sortOrder);
             }
 
             var vitalsResponsesQuery = vitalsQuery
