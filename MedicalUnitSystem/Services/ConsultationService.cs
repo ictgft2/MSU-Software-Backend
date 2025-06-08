@@ -8,6 +8,7 @@ using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace MedicalUnitSystem.Services
 {
@@ -134,14 +135,7 @@ namespace MedicalUnitSystem.Services
 
             if (propertyInfo is not null)
             {
-                if (query.sortOrder == SortOrder.Descending)
-                {
-                    consultationsQuery = consultationsQuery.OrderByDescending(d => propertyInfo.GetValue(d, null));
-                }
-                else
-                {
-                    consultationsQuery = consultationsQuery.OrderBy(d => propertyInfo.GetValue(d, null));
-                }
+                consultationsQuery = consultationsQuery.OrderByProperty(propertyInfo, query.sortOrder);
             }
 
             var consultationResponsesQuery = consultationsQuery
