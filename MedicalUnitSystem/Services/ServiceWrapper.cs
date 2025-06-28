@@ -120,18 +120,6 @@ namespace MedicalUnitSystem.Services
                 return _doctor;
             }
         }
-        public IGenderService Gender
-        {
-            get
-            {
-                if(_gender == null)
-                {
-                    _gender = new GenderService(_repository, _mapper);
-                }
-
-                return _gender;
-            }
-        } 
         public IPrescriptionService Prescription
         {
             get

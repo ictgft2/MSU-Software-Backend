@@ -47,7 +47,7 @@ namespace MedicalUnitSystem.Services
                     );
             }
 
-            return Task.FromResult(Result.Success<DispenseDrugsResponseDto>(dispenseDrugs));
+            return Task.FromResult(Result<DispenseDrugsResponseDto>.Success(dispenseDrugs));
         }
 
         public async Task<bool> PrescriptionExistsAsync(int prescriptionId)
