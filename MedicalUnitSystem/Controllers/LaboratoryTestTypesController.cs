@@ -23,6 +23,11 @@ namespace MedicalUnitSystem.Controllers
         {
             var newLaboratoryTestType = await _serviceWrapper.LaboratoryTestType.CreateLaboratoryTestType(laboratoryTestType);
 
+            if (!newLaboratoryTestType.IsSuccess)
+            {
+                return BadRequest(newLaboratoryTestType);
+            }
+
             return CreatedAtRoute("GetLaboratoryTestType",
                 new { laboratoryTestTypeId = newLaboratoryTestType.Value.LaboratoryTestTypeId },
                 newLaboratoryTestType);

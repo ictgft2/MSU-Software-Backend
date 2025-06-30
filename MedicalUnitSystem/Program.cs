@@ -11,6 +11,7 @@ using MedicalUnitSystem.Services.Contracts;
 using MedicalUnitSystem.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -22,7 +23,29 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-}); 
+});
+
+// customize fluent validation errors
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var validationErrors = context.ModelState
+           .Where(x => x.Value.Errors.Any())
+           .ToDictionary(
+               kvp => kvp.Key,
+               kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+           );
+
+        var result = Result<Dictionary<string, string[]>>.Failure(
+            "Validation Failed",
+            validationErrors
+        );
+
+        return new BadRequestObjectResult(result);
+    };
+});
+
 
 // Configure EF Core to use Npgsql with connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

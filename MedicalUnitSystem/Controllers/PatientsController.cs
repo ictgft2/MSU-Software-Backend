@@ -26,7 +26,7 @@ namespace MedicalUnitSystem.Controllers
 
             if (!newPatient.IsSuccess)
             {
-                return BadRequest(newPatient.Error);
+                return BadRequest(newPatient);
             }
 
             return CreatedAtRoute("GetPatient", 

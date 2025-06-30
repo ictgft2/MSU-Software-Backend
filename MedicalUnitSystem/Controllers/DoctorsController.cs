@@ -23,6 +23,11 @@ namespace MedicalUnitSystem.Controllers
         {
             var newDoctor = await _serviceWrapper.Doctor.CreateDoctor(doctor);
 
+            if (!newDoctor.IsSuccess)
+            {
+                return BadRequest(newDoctor);
+            }
+
             return CreatedAtRoute("GetDoctor", 
                 new { doctorId = newDoctor.Value.DoctorId },
                 newDoctor);

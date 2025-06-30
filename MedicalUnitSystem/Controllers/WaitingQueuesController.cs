@@ -23,6 +23,11 @@ namespace MedicalUnitSystem.Controllers
         {
             var newWaitingQueue = await _serviceWrapper.WaitingQueue.AddPatientToWaitingQueue(patientId);
 
+            if (!newWaitingQueue.IsSuccess)
+            {
+                return BadRequest(newWaitingQueue);
+            }
+
             return CreatedAtRoute("GetWaitingQueue",
                 new { waitingQueueId = newWaitingQueue.Value.WaitingQueueId },
                 newWaitingQueue);

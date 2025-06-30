@@ -2,26 +2,33 @@
 {
     public class Result<T>
     {
-        public bool IsSuccess { get; }
         public string Error { get; }
-        public Exception Exception { get; }
         public T Value { get; }
+        public bool IsSuccess => Error == null;
 
         private Result(T value)
         {
-            IsSuccess = true;
             Value = value;
+            Error = null;
         }
 
-        private Result(string error, Exception ex = null)
+        private Result(string error)
         {
-            IsSuccess = false;
             Error = error;
-            Exception = ex;
+            Value = default;
+        }
+
+        private Result(string error, T value)
+        {
+            Error = error;
+            Value = value;
         }
 
         public static Result<T> Success(T value) => new Result<T>(value);
 
-        public static Result<T> Failure(string error, Exception ex = null) => new Result<T>(error, ex);
+        public static Result<T> Failure(string error) => new Result<T>(error);
+
+        public static Result<T> Failure(string error, T value) => new Result<T>(error, value);
     }
+
 }

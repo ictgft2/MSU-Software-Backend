@@ -34,6 +34,11 @@ namespace MedicalUnitSystem.Controllers
 
             var newLaboratoryTest = await _serviceWrapper.LaboratoryTest.CreateLaboratoryTest(laboratoryTest);
 
+            if (!newLaboratoryTest.IsSuccess)
+            {
+                return BadRequest(newLaboratoryTest);
+            }
+
             return CreatedAtRoute("GetLaboratoryTest",
                 new { laboratoryTestId = newLaboratoryTest.Value.LaboratoryTestId },
                 newLaboratoryTest);
