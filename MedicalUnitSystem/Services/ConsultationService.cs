@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
-using MedicalUnitSystem.DTOs;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
-using MedicalUnitSystem.Helpers.Enums;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace MedicalUnitSystem.Services
 {
@@ -37,7 +35,7 @@ namespace MedicalUnitSystem.Services
 
             if (patient == null)
             {
-                return Task.FromResult(Result.Failure<CreateConsultationResponseDto>($"Patient with Id:{patientId} not found"));
+                return Task.FromResult(Result<CreateConsultationResponseDto>.Failure($"Patient with Id:{patientId} not found"));
             }
 
             var existingDoctorQuery = _repository.Doctors.FindByCondition(x => x.DoctorId == doctorId);
@@ -46,7 +44,7 @@ namespace MedicalUnitSystem.Services
 
             if (doctor == null)
             {
-                return Task.FromResult(Result.Failure<CreateConsultationResponseDto>($"Doctor with Id:{doctorId} not found"));
+                return Task.FromResult(Result<CreateConsultationResponseDto>.Failure($"Doctor with Id:{doctorId} not found"));
             }
 
             using var transaction = _repository.Context.Database.BeginTransaction();
@@ -60,6 +58,7 @@ namespace MedicalUnitSystem.Services
                     Notes = consultation.Notes,  
                     PatientId = patientId,
                     DoctorId = doctorId,
+                    ConsultationDate = DateTime.UtcNow,
                     FollowupDate = consultation.FollowupDate
                 };
 
@@ -91,7 +90,7 @@ namespace MedicalUnitSystem.Services
 
                 transaction.Commit();
 
-                return Task.FromResult(Result.Success<CreateConsultationResponseDto>(response));
+                return Task.FromResult(Result<CreateConsultationResponseDto>.Success(response));
             }
             catch (Exception ex)
             {
@@ -112,7 +111,7 @@ namespace MedicalUnitSystem.Services
 
             if (consultation == null)
             {
-                return Task.FromResult(Result.Failure<GetConsultationResponseDto>($"Consultation with Id:{consultationId} not found"));
+                return Task.FromResult(Result<GetConsultationResponseDto>.Failure($"Consultation with Id:{consultationId} not found"));
             }
 
             var response = _mapper.Map<GetConsultationResponseDto>(consultation);
@@ -120,7 +119,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetConsultationResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetConsultationResponseDto>> GetConsultations(GetPaginatedDataRequestDto query)
+        public async Task<Result<PagedList<GetConsultationResponseDto>>> GetConsultations(ConsultationEnum sortColumn, GetPaginatedDataRequestDto query)
         {
             IQueryable<Consultation> consultationsQuery = _repository.Consultations.FindAll();
 
@@ -131,7 +130,7 @@ namespace MedicalUnitSystem.Services
                     d.Notes.Contains(query.searchTerm));
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<Consultation>(query.sortColumn);
+            var propertyInfo = _propertyCheckingService.CheckProperty<Consultation>(sortColumn.ToString());
 
             if (propertyInfo is not null)
             {
@@ -159,7 +158,7 @@ namespace MedicalUnitSystem.Services
 
             var consultations = await PagedList<GetConsultationResponseDto>.CreateAsync(consultationResponsesQuery, query.page, query.pageSize);
 
-            return consultations;
+            return Result<PagedList<GetConsultationResponseDto>>.Success(consultations);
         }
 
         public void UpdateConsultation(int consultationId, UpdateConsultationRequestDto consultationDetails)
@@ -175,7 +174,6 @@ namespace MedicalUnitSystem.Services
             // map new prescriptions
             var newPrescriptions = _mapper.Map<List<Prescription>>(consultationDetails.Prescriptions);
             consultation.Prescriptions = newPrescriptions;
-            consultation.ConsultationDate = consultationDetails.ConsultationDate;
             consultation.FollowupDate = consultationDetails.FollowupDate;
             consultation.Notes = consultationDetails.Notes;
             consultation.Diagnosis = consultationDetails.Diagnosis;

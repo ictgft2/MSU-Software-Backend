@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
@@ -7,6 +8,7 @@ using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 
 namespace MedicalUnitSystem.Services
 {
@@ -23,11 +25,22 @@ namespace MedicalUnitSystem.Services
             _propertyCheckingService = propertyCheckingService;
         }
 
-        public Task<Result<CreateLaboratoryTestTypeResponseDto>> CreateLaboratoryTestType(CreateLaboratoryTestTypeRequestDto laboratoryTestType)
+        #region Methods
+        public Task<Result<CreateLaboratoryTestTypeResponseDto>> CreateLaboratoryTestType(CreateLaboratoryTestTypeRequestDto request)
         {
+            var laboratoryTestTypeQuery = _repository.LaboratoryTestTypes
+                .FindByCondition(l => l.LaboratoryTestTypeName == request.LaboratoryTestTypeName);
+
+            var laboratoryTestType = laboratoryTestTypeQuery.FirstOrDefault();
+
+            if(laboratoryTestType is not null)
+            {
+               return Task.FromResult(Result<CreateLaboratoryTestTypeResponseDto>.Failure($"Laboratory Test Type:{request.LaboratoryTestTypeName} already exists"));               
+            }
+
             var newLaboratoryTestType = new LaboratoryTestType
             {
-                LaboratoryTestTypeName = laboratoryTestType.LaboratoryTestTypeName,
+                LaboratoryTestTypeName = request.LaboratoryTestTypeName,
             };
 
             _repository.LaboratoryTestTypes.Create(newLaboratoryTestType);
@@ -36,7 +49,7 @@ namespace MedicalUnitSystem.Services
 
             var response = _mapper.Map<CreateLaboratoryTestTypeResponseDto>(newLaboratoryTestType);
 
-            return Task.FromResult(Result.Success<CreateLaboratoryTestTypeResponseDto>(response));
+            return Task.FromResult(Result<CreateLaboratoryTestTypeResponseDto>.Success(response));
         }
 
         public Task<Result<GetLaboratoryTestTypeResponseDto>> GetLaboratoryTestType(int laboratoryTestTypeId)
@@ -47,7 +60,7 @@ namespace MedicalUnitSystem.Services
 
             if (laboratoryTestType == null)
             {
-                return Task.FromResult(Result.Failure<GetLaboratoryTestTypeResponseDto>($"LaboratoryTestType with Id:{laboratoryTestTypeId} not found"));
+                return Task.FromResult(Result<GetLaboratoryTestTypeResponseDto>.Failure($"LaboratoryTestType with Id:{laboratoryTestTypeId} not found"));
             }   
 
             var response = _mapper.Map<GetLaboratoryTestTypeResponseDto>(laboratoryTestType);
@@ -55,7 +68,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetLaboratoryTestTypeResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetLaboratoryTestTypeResponseDto>> GetLaboratoryTestTypes(GetPaginatedDataRequestDto query)
+        public async Task<Result<PagedList<GetLaboratoryTestTypeResponseDto>>> GetLaboratoryTestTypes(LaboratoryTestTypeEnum sortColumn, GetPaginatedDataRequestDto query)
         {
             IQueryable<LaboratoryTestType> laboratoryTestTypesQuery = _repository.LaboratoryTestTypes.FindAll();
 
@@ -65,7 +78,7 @@ namespace MedicalUnitSystem.Services
                     .FindByCondition(d => d.LaboratoryTestTypeName.Contains(query.searchTerm));
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<LaboratoryTest>(query.sortColumn);
+            var propertyInfo = _propertyCheckingService.CheckProperty<LaboratoryTestType>(sortColumn.ToString());
 
             if (propertyInfo is not null)
             {
@@ -81,7 +94,7 @@ namespace MedicalUnitSystem.Services
 
             var laboratoryTestTypes = await PagedList<GetLaboratoryTestTypeResponseDto>.CreateAsync(laboratoryTestTypeResponsesQuery, query.page, query.pageSize);
 
-            return laboratoryTestTypes;
+            return Result<PagedList<GetLaboratoryTestTypeResponseDto>>.Success(laboratoryTestTypes);
         }
 
         public async Task<bool> LaboratoryTestTypeExistsAsync(int laboratoryTestTypeId)
@@ -101,5 +114,6 @@ namespace MedicalUnitSystem.Services
 
             _repository.Save();
         }
+        #endregion
     }
 }

@@ -11,6 +11,5 @@
         IWaitingQueueService WaitingQueue { get; }
         IPrescriptionService Prescription { get; }
         IDoctorService Doctor { get; }
-        IGenderService Gender { get; }
     }
 }

@@ -16,18 +16,18 @@ namespace MedicalUnitSystem.Controllers
             _serviceWrapper = serviceWrapper;
         }
 
-        [HttpPost("{dispense}")]
-        public async Task<ActionResult<Result>> DispenseDrugs([FromBody] DispenseDrugRequestDto dispenseDrug)
-        {
-            foreach (var prescriptionId in dispenseDrug.Prescriptions)
-            {
-                if(!await _serviceWrapper.Prescription.PrescriptionExistsAsync(prescriptionId))
-                {
-                    return NotFound($"Prescription with id:{prescriptionId} not found");
-                }
-            }
+        //[HttpPost("{dispense}")]
+        //public async Task<ActionResult<Result>> DispenseDrugs([FromBody] DispenseDrugRequestDto dispenseDrug)
+        //{
+        //    foreach (var prescriptionId in dispenseDrug.Prescriptions)
+        //    {
+        //        if(!await _serviceWrapper.Prescription.PrescriptionExistsAsync(prescriptionId))
+        //        {
+        //            return NotFound($"Prescription with id:{prescriptionId} not found");
+        //        }
+        //    }
 
-            return Ok(await _serviceWrapper.Prescription.DispenseDrugs(dispenseDrug.Prescriptions));
-        }
+        //    return Ok(await _serviceWrapper.Prescription.DispenseDrugs(dispenseDrug.Prescriptions));
+        //}
     }
 }

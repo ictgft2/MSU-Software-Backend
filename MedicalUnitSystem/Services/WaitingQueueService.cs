@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
-using MedicalUnitSystem.Helpers.Enums;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services.Contracts;
@@ -29,7 +29,7 @@ namespace MedicalUnitSystem.Services
 
             if (patient is null)
             {
-                return Task.FromResult(Result.Failure<AddPatientToWaitingQueueResponseDto>($"Patient with Id:{patientId} not found"));
+                return Task.FromResult(Result<AddPatientToWaitingQueueResponseDto>.Failure($"Patient with Id:{patientId} not found"));
             }
 
             var newWaitingQueue = new WaitingQueue
@@ -55,7 +55,7 @@ namespace MedicalUnitSystem.Services
 
             if (waitingQueue == null)
             {
-                return Task.FromResult(Result.Failure<GetWaitingQueueResponseDto>($"Waiting Queue with Id:{waitingQueueId} not found"));
+                return Task.FromResult(Result<GetWaitingQueueResponseDto>.Failure($"Waiting Queue with Id:{waitingQueueId} not found"));
             }
 
             var response = _mapper.Map<GetWaitingQueueResponseDto>(waitingQueue);
@@ -63,7 +63,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetWaitingQueueResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetWaitingQueueResponseDto>> GetWaitingQueues(GetPaginatedDataRequestDto query)
+        public async Task<PagedList<GetWaitingQueueResponseDto>> GetWaitingQueues(WaitingQueueEnum sortColumn, GetPaginatedDataRequestDto query)
         {
             IQueryable<WaitingQueue> waitingQueuesQuery = _repository.WaitingQueues.FindAll();
 
@@ -78,7 +78,7 @@ namespace MedicalUnitSystem.Services
                 }
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<Vital>(query.sortColumn);
+            var propertyInfo = _propertyCheckingService.CheckProperty<WaitingQueue>(sortColumn.ToString());
 
             if (propertyInfo is not null)
             {

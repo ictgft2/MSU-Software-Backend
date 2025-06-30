@@ -1,4 +1,6 @@
-﻿using MedicalUnitSystem;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+using MedicalUnitSystem;
 using MedicalUnitSystem.Data;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Models;
@@ -6,16 +8,44 @@ using MedicalUnitSystem.Repositories;
 using MedicalUnitSystem.Repositories.Contracts;
 using MedicalUnitSystem.Services;
 using MedicalUnitSystem.Services.Contracts;
+using MedicalUnitSystem.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// customize fluent validation errors
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var validationErrors = context.ModelState
+           .Where(x => x.Value.Errors.Any())
+           .ToDictionary(
+               kvp => kvp.Key,
+               kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+           );
+
+        var result = Result<Dictionary<string, string[]>>.Failure(
+            "Validation Failed",
+            validationErrors
+        );
+
+        return new BadRequestObjectResult(result);
+    };
+});
+
 
 // Configure EF Core to use Npgsql with connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -33,6 +63,9 @@ builder.Services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
 // Configure Custom Services
 builder.Services.AddScoped<IServiceWrapper, ServiceWrapper>();
 builder.Services.AddTransient<IPropertyCheckingService, PropertyCheckingService>();
+// For Validators
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreatePatientRequestValidator>();
 
 // JWT Authentication configuration
 

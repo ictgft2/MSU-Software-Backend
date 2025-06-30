@@ -13,6 +13,7 @@ namespace MedicalUnitSystem.Profiles
 
             CreateMap<Patient, CreatePatientResponseDto>();
             CreateMap<Patient, UpdatePatientResponseDto>();
+            CreateMap<Patient, GetPatientResponseDto>();
 
             CreateMap<Consultation, CreateConsultationResponseDto>();
 
@@ -34,8 +35,10 @@ namespace MedicalUnitSystem.Profiles
             
             CreateMap<Consultation, GetConsultationResponseDto>();
             CreateMap<Consultation, CreateConsultationResponseDto>();
+
             CreateMap<Prescription, GetPrescriptionResponseDto>();
             CreateMap<CreatePrescriptionRequestDto, Prescription>();
+            CreateMap<UpdatePrescriptionRequestDto, Prescription>();
             
             CreateMap<Vital, GetVitalsResponseDto>();
             

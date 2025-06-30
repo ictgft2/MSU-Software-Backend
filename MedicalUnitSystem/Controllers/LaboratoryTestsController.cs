@@ -1,4 +1,6 @@
-﻿using MedicalUnitSystem.DTOs.Requests;
+﻿using MedicalUnitSystem.DTOs.Enums;
+using MedicalUnitSystem.DTOs.Requests;
+using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
 using MedicalUnitSystem.Models;
 using MedicalUnitSystem.Services.Contracts;
@@ -18,7 +20,7 @@ namespace MedicalUnitSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Result>> CreateLaboratoryTest([FromBody] CreateLaboratoryTestRequestDto laboratoryTest)
+        public async Task<ActionResult<Result<CreateLaboratoryTestResponseDto>>> CreateLaboratoryTest([FromBody] CreateLaboratoryTestRequestDto laboratoryTest)
         {
             if(!await _serviceWrapper.LaboratoryTestType.LaboratoryTestTypeExistsAsync(laboratoryTest.LaboratoryTestTypeId))
             {
@@ -32,25 +34,30 @@ namespace MedicalUnitSystem.Controllers
 
             var newLaboratoryTest = await _serviceWrapper.LaboratoryTest.CreateLaboratoryTest(laboratoryTest);
 
+            if (!newLaboratoryTest.IsSuccess)
+            {
+                return BadRequest(newLaboratoryTest);
+            }
+
             return CreatedAtRoute("GetLaboratoryTest",
-                new { laboratoryTestId = newLaboratoryTest.Data.LaboratoryTestId },
+                new { laboratoryTestId = newLaboratoryTest.Value.LaboratoryTestId },
                 newLaboratoryTest);
         }
 
         [HttpGet]
-        public async Task<ActionResult<Result>> GetLaboratoryTests([FromQuery] GetPaginatedDataRequestDto query)
+        public async Task<ActionResult<Result<GetLaboratoryTestResponseDto>>> GetLaboratoryTests( [FromQuery] GetPaginatedDataRequestDto query, [FromQuery] LaboratoryTestEnum sortColumn = LaboratoryTestEnum.LaboratoryTestTypeId)
         {
-            return Ok(await _serviceWrapper.LaboratoryTest.GetLaboratoryTests(query));
+            return Ok(await _serviceWrapper.LaboratoryTest.GetLaboratoryTests(sortColumn, query));
         }
 
         [HttpGet("{laboratoryTestId}", Name = "GetLaboratoryTest")]
-        public async Task<ActionResult<Result>> GetLaboratoryTest([FromRoute] int laboratoryTestId)
+        public async Task<ActionResult<Result<GetLaboratoryTestResponseDto>>> GetLaboratoryTest([FromRoute] int laboratoryTestId)
         {
             return Ok(await _serviceWrapper.LaboratoryTest.GetLaboratoryTest(laboratoryTestId));
         }
 
         [HttpPut("{laboratoryTestId}")]
-        public async Task<ActionResult<Result>> UpdateLaboratoryTest([FromRoute] int laboratoryTestId, [FromBody] UpdateLaboratoryTestRequestDto laboratoryTest)
+        public async Task<ActionResult> UpdateLaboratoryTest([FromRoute] int laboratoryTestId, [FromBody] UpdateLaboratoryTestRequestDto laboratoryTest)
         {
             if (!await _serviceWrapper.LaboratoryTest.LaboratoryTestExistsAsync(laboratoryTestId))
             {

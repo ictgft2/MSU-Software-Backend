@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MedicalUnitSystem.DTOs.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace MedicalUnitSystem.DTOs.Requests
 {
@@ -6,9 +7,9 @@ namespace MedicalUnitSystem.DTOs.Requests
     {
         public string Name { get; set; }
 
-        public int Age { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
-        public int GenderId { get; set; }
+        public GenderEnum GenderId { get; set; }
 
         public string Email { get; set; }
         public string Phone { get; set; } = null;

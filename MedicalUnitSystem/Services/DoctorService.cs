@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
@@ -21,8 +22,17 @@ namespace MedicalUnitSystem.Services
             _propertyCheckingService = propertyCheckingService;
         }
 
-        public Task<Result<CreateDoctorResponseDto>> CreateDoctor(CreateDoctorRequestDto doctor)
+        public Task<Result<CreateDoctorResponseDto>> CreateDoctor(CreateDoctorRequestDto request)
         {
+            var existingDoctorQuery = _repository.Doctors.FindByCondition(x => x.Email == request.Email);
+
+            var doctor = existingDoctorQuery.FirstOrDefault();
+
+            if (doctor is not null)
+            {
+                return Task.FromResult(Result<CreateDoctorResponseDto>.Failure($"Doctor with Email:{request.Email} already exists"));
+            }
+
             var newDoctor = new Doctor
             {
                 Name = doctor.Name,
@@ -64,7 +74,7 @@ namespace MedicalUnitSystem.Services
 
             if (doctor == null)
             {
-                return Task.FromResult(Result.Failure<GetDoctorResponseDto>($"Doctor with Id:{doctorId} not found"));
+                return Task.FromResult(Result<GetDoctorResponseDto>.Failure($"Doctor with Id:{doctorId} not found"));
             }
 
             var response = _mapper.Map<GetDoctorResponseDto>(doctor);
@@ -72,7 +82,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetDoctorResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetDoctorResponseDto>> GetDoctors(GetPaginatedDataRequestDto query)
+        public async Task<Result<PagedList<GetDoctorResponseDto>>> GetDoctors(DoctorEnum sortColumn, GetPaginatedDataRequestDto query)
         {
             IQueryable<Doctor> doctorsQuery = _repository.Doctors.FindAll();
 
@@ -82,7 +92,7 @@ namespace MedicalUnitSystem.Services
                     .FindByCondition(d => d.Name.Contains(query.searchTerm) || d.Email.Contains(query.searchTerm));
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<Doctor>(query.sortColumn);
+            var propertyInfo = _propertyCheckingService.CheckProperty<Doctor>(sortColumn.ToString());
 
             if(propertyInfo is not null)
             {
@@ -100,7 +110,7 @@ namespace MedicalUnitSystem.Services
 
             var doctors = await PagedList<GetDoctorResponseDto>.CreateAsync(doctorResponsesQuery, query.page, query.pageSize);
 
-            return doctors;
+            return Result<PagedList<GetDoctorResponseDto>>.Success(doctors);
         }
 
         public async Task<bool> DoctorExistsAsync(int doctorId)

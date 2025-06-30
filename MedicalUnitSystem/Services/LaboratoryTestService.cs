@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
@@ -37,7 +38,7 @@ namespace MedicalUnitSystem.Services
 
             var response = _mapper.Map<CreateLaboratoryTestResponseDto>(newLaboratoryTest);
 
-            return Task.FromResult(Result.Success<CreateLaboratoryTestResponseDto>(response));
+            return Task.FromResult(Result<CreateLaboratoryTestResponseDto>.Success(response));
         }
 
         public Task<Result<GetLaboratoryTestResponseDto>> GetLaboratoryTest(int laboratoryTestId)
@@ -48,7 +49,7 @@ namespace MedicalUnitSystem.Services
 
             if (laboratoryTest == null)
             {
-                return Task.FromResult(Result.Failure<GetLaboratoryTestResponseDto>($"LaboratoryTest with Id:{laboratoryTestId} not found"));
+                return Task.FromResult(Result<GetLaboratoryTestResponseDto>.Failure($"LaboratoryTest with Id:{laboratoryTestId} not found"));
             }
 
             var response = _mapper.Map<GetLaboratoryTestResponseDto>(laboratoryTest);
@@ -56,7 +57,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetLaboratoryTestResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetLaboratoryTestResponseDto>> GetLaboratoryTests(GetPaginatedDataRequestDto query)
+        public async Task<Result<PagedList<GetLaboratoryTestResponseDto>>> GetLaboratoryTests(LaboratoryTestEnum sortColumn, GetPaginatedDataRequestDto query)
         {
             IQueryable<LaboratoryTest> laboratoryTestsQuery = _repository.LaboratoryTests.FindAll();
 
@@ -67,7 +68,7 @@ namespace MedicalUnitSystem.Services
                     d.Patient.Name.Contains(query.searchTerm));
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<LaboratoryTest>(query.sortColumn);
+            var propertyInfo = _propertyCheckingService.CheckProperty<LaboratoryTest>(sortColumn.ToString());
 
             if (propertyInfo is not null)
             {
@@ -86,7 +87,7 @@ namespace MedicalUnitSystem.Services
 
             var laboratoryTests = await PagedList<GetLaboratoryTestResponseDto>.CreateAsync(laboratoryTestResponsesQuery, query.page, query.pageSize);
 
-            return laboratoryTests;
+            return Result<PagedList<GetLaboratoryTestResponseDto>>.Success(laboratoryTests);
         }
 
         public async Task<bool> LaboratoryTestExistsAsync(int laboratoryTestId)
