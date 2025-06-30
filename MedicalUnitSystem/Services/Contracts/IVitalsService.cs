@@ -1,4 +1,5 @@
-﻿using MedicalUnitSystem.DTOs.Requests;
+﻿using MedicalUnitSystem.DTOs.Enums;
+using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
 
@@ -10,6 +11,6 @@ namespace MedicalUnitSystem.Services.Contracts
         void UpdateVitals(int vitalId, UpdateVitalsRequestDto updateVitals);
         Task<bool> VitalsExistsAsync(int vitalsId);
         Task<Result<GetVitalsResponseDto>> GetVitals(int vitalsId);
-        Task<PagedList<GetVitalsResponseDto>> GetAllPatientVitals(GetPaginatedDataRequestDto query);
+        Task<PagedList<GetVitalsResponseDto>> GetAllPatientVitals(VitalsEnum sortColumn, GetPaginatedDataRequestDto query);
     }
 }

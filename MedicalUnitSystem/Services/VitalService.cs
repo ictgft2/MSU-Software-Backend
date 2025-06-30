@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
@@ -30,7 +31,7 @@ namespace MedicalUnitSystem.Services
 
             if(existingPatientQuery is null)
             {
-                return Task.FromResult(Result.Failure<CreateVitalsResponseDto>($"Patient with Id:{patientId} not found"));
+                return Task.FromResult(Result<CreateVitalsResponseDto>.Failure($"Patient with Id:{patientId} not found"));
             }
 
             var newVitals = new Vital
@@ -82,7 +83,7 @@ namespace MedicalUnitSystem.Services
 
             if (vitals == null)
             {
-                return Task.FromResult(Result.Failure<GetVitalsResponseDto>($"Patient with Id:{vitalsId} not found"));
+                return Task.FromResult(Result<GetVitalsResponseDto>.Failure($"Patient with Id:{vitalsId} not found"));
             }
 
             var response = _mapper.Map<GetVitalsResponseDto>(vitals);
@@ -90,7 +91,7 @@ namespace MedicalUnitSystem.Services
             return Task.FromResult(Result<GetVitalsResponseDto>.Success(response));
         }
 
-        public async Task<PagedList<GetVitalsResponseDto>> GetAllPatientVitals(GetPaginatedDataRequestDto query)
+        public async Task<PagedList<GetVitalsResponseDto>> GetAllPatientVitals(VitalsEnum sortColumn, GetPaginatedDataRequestDto query)
         {
             IQueryable<Vital> vitalsQuery = _repository.Vitals.FindAll();
 
@@ -100,7 +101,7 @@ namespace MedicalUnitSystem.Services
                     .FindByCondition(d => d.Notes.Contains(query.searchTerm));
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<Vital>(query.sortColumn);
+            var propertyInfo = _propertyCheckingService.CheckProperty<Vital>(sortColumn.ToString());
 
             if (propertyInfo is not null)
             {

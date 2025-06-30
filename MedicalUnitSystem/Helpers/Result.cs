@@ -1,22 +1,34 @@
 ﻿namespace MedicalUnitSystem.Helpers
 {
-    public class Result
+    public class Result<T>
     {
-        public Result(bool isSuccess, Error error)
+        public string Error { get; }
+        public T Value { get; }
+        public bool IsSuccess => Error == null;
+
+        private Result(T value)
         {
-            IsSuccess = isSuccess;
-            Error = error;
+            Value = value;
+            Error = null;
         }
 
-        public bool IsSuccess { get; }
-        public Error Error { get; }
+        private Result(string error)
+        {
+            Error = error;
+            Value = default;
+        }
 
-        public static Result Success() => new(true, Error.None);
+        private Result(string error, T value)
+        {
+            Error = error;
+            Value = value;
+        }
 
-        public static Result Failure(Error error) => new(false, error);
+        public static Result<T> Success(T value) => new Result<T>(value);
 
-        public static Result<T> Success<T>(T data) => new(true, Error.None, data);
+        public static Result<T> Failure(string error) => new Result<T>(error);
 
-        public static Result<T> Failure<T>(Error error) => new(false, error, default);
+        public static Result<T> Failure(string error, T value) => new Result<T>(error, value);
     }
+
 }

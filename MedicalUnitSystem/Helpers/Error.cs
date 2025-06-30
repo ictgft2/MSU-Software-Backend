@@ -1,13 +1,13 @@
 ﻿namespace MedicalUnitSystem.Helpers
 {
-    public class Error
+    public class Error : Exception
     {
         public Error(string message)
         {
             Message = message;
         }
 
-        public string Message { get; }
+        public string Message { get; } = string.Empty;
 
         public static Error None => new(string.Empty);
 

@@ -11,44 +11,5 @@ namespace MedicalUnitSystem.Controllers
     public class GendersController : ControllerBase
     {
         private readonly IServiceWrapper _serviceWrapper;
-
-        public GendersController(IServiceWrapper serviceWrapper)
-        {
-            _serviceWrapper = serviceWrapper;
-        }
-
-        [HttpPost]        
-        public async Task<ActionResult<Result>> CreateGender([FromBody] CreateGenderRequestDto gender)
-        {
-            var newGender = await _serviceWrapper.Gender.CreateGender(gender);
-            return CreatedAtRoute("GetGender",
-                new { genderId = newGender.Data.GenderId },
-                newGender);
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<Result>> GetGenders()
-        {
-            return Ok(await _serviceWrapper.Gender.GetGenders());
-        }
-
-        [HttpGet("{genderId}", Name = "GetGender")]
-        public async Task<ActionResult<Result>> GetGender([FromRoute] int genderId)
-        {
-            return Ok(await _serviceWrapper.Gender.GetGender(genderId));
-        }
-
-        [HttpPut("{genderId}")]
-        public async Task<ActionResult<Result>> UpdateDoctor([FromRoute] int genderId, [FromBody] UpdateGenderRequestDto gender)
-        {
-            if (!await _serviceWrapper.Gender.GenderExistsAsync(genderId))
-            {
-                return NotFound();
-            }
-
-             await _serviceWrapper.Gender.UpdateGender(genderId, gender);
-
-            return NoContent();
-        }
     }
 }

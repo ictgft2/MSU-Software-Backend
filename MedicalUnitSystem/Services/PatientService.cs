@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MedicalUnitSystem.DTOs.Enums;
 using MedicalUnitSystem.DTOs.Requests;
 using MedicalUnitSystem.DTOs.Responses;
 using MedicalUnitSystem.Helpers;
@@ -19,7 +20,7 @@ namespace MedicalUnitSystem.Services
         #endregion
 
         #region Constructor
-        public PatientService(IRepositoryWrapper repository, IMapper mapper, IPropertyCheckingService propertyCheckingService) 
+        public PatientService(IRepositoryWrapper repository, IMapper mapper, IPropertyCheckingService propertyCheckingService)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -30,50 +31,79 @@ namespace MedicalUnitSystem.Services
         #region Methods
         public Task<Result<CreatePatientResponseDto>> CreatePatient(CreatePatientRequestDto patient)
         {
-            var newPatient = MakePatient(patient);            
+            var newPatient = MakePatient(patient);
 
-            var response = _mapper.Map<CreatePatientResponseDto>(newPatient);
+            if (newPatient.IsSuccess)
+            {
+                var response = _mapper.Map<CreatePatientResponseDto>(newPatient.Value);
 
-            return Task.FromResult(Result<CreatePatientResponseDto>.Success(response));
+                return Task.FromResult(Result<CreatePatientResponseDto>.Success(response));
+            }
+
+            
+            return Task.FromResult(Result<CreatePatientResponseDto>.Failure(newPatient.Error));
         }
 
-        private Patient MakePatient(CreatePatientRequestDto patient) 
+        private Result<Patient> MakePatient(CreatePatientRequestDto request)
         {
+            var patientEmailAlreadyExist = VerifyEmail(request.Email);
+
+            if (!patientEmailAlreadyExist)
+            {
+                return Result<Patient>.Failure($"Patient with email:{request.Email} already exist");
+            }
+
+            var patientPhoneAlreadyExist = VerifyEmail(request.Phone);
+
+            if (!patientPhoneAlreadyExist)
+            {
+                return Result<Patient>.Failure($"Patient with phone number:{request.Phone} already exist");
+            }
+
             var newPatientNumber = GenerateUniquePatientNumber();
 
             var newPatient = new Patient
             {
-                Age = patient.Age,
-                Name = patient.Name,
-                GenderId = patient.GenderId,
-                Email = patient.Email,
+                DateOfBirth = request.DateOfBirth,
+                Name = request.Name,
+                GenderId = (int)request.GenderId,
+                Email = request.Email,
                 PatientNumber = newPatientNumber,
-                Phone = patient.Phone,
-                MedicalHistory = patient.MedicalHistory,
+                Phone = request.Phone,
+                MedicalHistory = request.MedicalHistory,
             };
 
             _repository.Patients.Create(newPatient);
 
             _repository.Save();
 
-            return newPatient;
+            return Result<Patient>.Success(newPatient);
         }
 
-        public void UpdatePatient(int patientId, UpdatePatientRequestDto patientDetails)
+        public Result<UpdatePatientResponseDto> UpdatePatient(int patientId, UpdatePatientRequestDto patientDetails)
         {
-            var existingPatient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
+            var result = VerifyEmail(patientId, patientDetails.Email);
 
-            var patient = existingPatient.FirstOrDefault();
+            if (result.IsSuccess)
+            {
+                var existingPatient = _repository.Patients.FindByCondition(x => x.PatientId == patientId);
 
-            patient.Name = patientDetails.Name;
-            patient.Age = patientDetails.Age;
-            patient.Email = patientDetails.Email;
-            patient.Phone = patientDetails.Phone;
-            patient.GenderId = patientDetails.GenderId;
+                var patient = existingPatient.FirstOrDefault();
 
-            _repository.Patients.Update(patient);
+                patient.Name = patientDetails.Name;
+                patient.DateOfBirth = patientDetails.DateOfBirth;
+                patient.Email = patientDetails.Email;
+                patient.Phone = patientDetails.Phone;
+                patient.GenderId = (int)patientDetails.GenderId;
 
-            _repository.Save();
+                _repository.Patients.Update(patient);
+
+                _repository.Save();
+
+                return Result<UpdatePatientResponseDto>.Success(_mapper.Map<UpdatePatientResponseDto>(patient));
+            }
+
+            return result;
         }
 
         public Task<Result<GetPatientResponseDto>> GetPatient(int patientId)
@@ -82,9 +112,9 @@ namespace MedicalUnitSystem.Services
 
             var patient = existingPatientQuery.FirstOrDefault();
 
-            if(patient == null)
+            if (patient == null)
             {
-                return Task.FromResult(Result.Failure<GetPatientResponseDto>($"Patient with Id:{patientId} not found"));
+                return Task.FromResult(Result<GetPatientResponseDto>.Failure($"Patient with Id:{patientId} not found"));
             }
 
             var response = _mapper.Map<GetPatientResponseDto>(patient);
@@ -100,14 +130,14 @@ namespace MedicalUnitSystem.Services
 
             if (patient == null)
             {
-                return Task.FromResult(Result.Failure<DischargePatientResponseDto>($"Patient with phone number:{discharge.PatientPhoneNumber} not found"));
+                return Task.FromResult(Result<DischargePatientResponseDto>.Failure($"Patient with phone number:{discharge.PatientPhoneNumber} not found"));
             }
 
             var admissionDetailsQuery = _repository.Admissions.FindByCondition(a => a.PatientId == patient.PatientId & a.IsDischarged == true);
 
             var admission = admissionDetailsQuery.FirstOrDefault();
 
-            if(admission is not null)
+            if (admission is not null)
             {
                 admission.IsDischarged = true;
                 admission.DischargeNotes = discharge.DischargeNotes;
@@ -118,10 +148,10 @@ namespace MedicalUnitSystem.Services
 
                 var response = _mapper.Map<DischargePatientResponseDto>(admission);
 
-                return Task.FromResult(Result.Success<DischargePatientResponseDto>(response));
+                return Task.FromResult(Result<DischargePatientResponseDto>.Success(response));
             }
 
-            return Task.FromResult(Result.Failure<DischargePatientResponseDto>($"No Admission Record for Patient with Patient Number:{patient.PatientNumber}"));
+            return Task.FromResult(Result<DischargePatientResponseDto>.Failure($"No Admission Record for Patient with Patient Number:{patient.PatientNumber}"));
         }
 
         public void AdmitPatient(int patientId)
@@ -159,12 +189,12 @@ namespace MedicalUnitSystem.Services
                 MakePatient(
                     new CreatePatientRequestDto
                     {
-                        Age = 0,
+                        DateOfBirth = DateTime.Now,
                         Email = "",
                         Name = "",
-                        GenderId = 1,
+                        GenderId = GenderEnum.Male,
                         Phone = patientPhoneNumber
-                    });
+                    }).Value;
 
             AdmitPatient(patient.PatientId);
 
@@ -173,6 +203,52 @@ namespace MedicalUnitSystem.Services
             return Result<CreatePatientResponseDto>.Success(response);
         }
 
+        public async Task<bool> PatientExistsAsync(int patientId)
+        {
+            return await _repository.Patients.PatientExistsAsync(patientId);
+        }
+        public async Task<bool> PatientExistsAsync(string patientPhoneNumber)
+        {
+            return await _repository.Patients.PatientExistsAsync(patientPhoneNumber);
+        }
+
+        public async Task<PagedList<GetPatientResponseDto>> GetPatients(PatientEnum sortColumn, GetPaginatedDataRequestDto query)
+        {
+            IQueryable<Patient> patientsQuery = _repository.Patients.FindAll();
+
+            if (!string.IsNullOrWhiteSpace(query.searchTerm))
+            {
+                patientsQuery = _repository.Patients
+                    .FindByCondition(d => d.Name.Contains(query.searchTerm) ||
+                    d.PatientNumber.Contains(query.searchTerm));
+            }
+
+            var propertyInfo = _propertyCheckingService.CheckProperty<Patient>(sortColumn.ToString());
+
+            if (propertyInfo is not null)
+            {
+                patientsQuery = patientsQuery.OrderByProperty(propertyInfo, query.sortOrder);
+            }
+
+            var patientResponsesQuery = patientsQuery
+                .Select(d => new GetPatientResponseDto
+                {
+                    Name = d.Name,
+                    DateOfBirth = d.DateOfBirth,
+                    Email = d.Email,
+                    MedicalHistory = d.MedicalHistory,
+                    PatientId = d.PatientId,
+                    Phone = d.Phone
+                });
+
+            var patients = await PagedList<GetPatientResponseDto>.CreateAsync(patientResponsesQuery, query.page, query.pageSize);
+
+            return patients;
+        }
+
+        #endregion
+
+        #region Private Methods
         private string GenerateUniquePatientNumber()
         {
             Random random = new Random();
@@ -194,49 +270,59 @@ namespace MedicalUnitSystem.Services
 
             return patientNumber;
         }
-        public async Task<bool> PatientExistsAsync(int patientId)
-        {
-            return await _repository.Patients.PatientExistsAsync(patientId);
-        }
-        public async Task<bool> PatientExistsAsync(string patientPhoneNumber)
-        {
-            return await _repository.Patients.PatientExistsAsync(patientPhoneNumber);
-        }
 
-        public async Task<PagedList<GetPatientResponseDto>> GetPatients(GetPaginatedDataRequestDto query)
+        private Result<UpdatePatientResponseDto> VerifyEmail(int patientId, string email)
         {
-            IQueryable<Patient> patientsQuery = _repository.Patients.FindAll();
+            var existingPatientQuery = _repository.Patients.FindByCondition(p => p.PatientId == patientId);
 
-            if (!string.IsNullOrWhiteSpace(query.searchTerm))
+            var patient = existingPatientQuery.FirstOrDefault();
+
+            if (patient is null)
             {
-                patientsQuery = _repository.Patients
-                    .FindByCondition(d => d.Name.Contains(query.searchTerm) ||
-                    d.PatientNumber.Contains(query.searchTerm));
+                return Result<UpdatePatientResponseDto>.Failure($"Patient with id:{patientId} does not exist");
             }
 
-            var propertyInfo = _propertyCheckingService.CheckProperty<Patient>(query.sortColumn);
-
-            if (propertyInfo is not null)
+            if (patient.Email != email)
             {
-                patientsQuery = patientsQuery.OrderByProperty(propertyInfo, query.sortOrder);
-            }
+                var existingPatientEmailQuery = _repository.Patients.FindByCondition(p => p.Email == email);
 
-            var patientResponsesQuery = patientsQuery
-                .Select(d => new GetPatientResponseDto
+                var existingPatientEmail = existingPatientEmailQuery.FirstOrDefault();
+
+                if (existingPatientEmail is not null)
                 {
-                    Name = d.Name,
-                    Age = d.Age,
-                    Email = d.Email,
-                    MedicalHistory = d.MedicalHistory,
-                    PatientId = d.PatientId,
-                    Phone = d.Phone
-                });
+                    return Result<UpdatePatientResponseDto>.Failure($"New patient email:{email} already exist");
+                }
+            }
 
-            var patients = await PagedList<GetPatientResponseDto>.CreateAsync(patientResponsesQuery, query.page, query.pageSize);
-
-            return patients;
+            return Result<UpdatePatientResponseDto>.Success(_mapper.Map<UpdatePatientResponseDto>(patient));
         }
+        private bool VerifyEmail(string email)
+        {
+            var existingPatientEmailQuery = _repository.Patients.FindByCondition(p => p.Email == email);
 
+            var existingPatientEmail = existingPatientEmailQuery.FirstOrDefault();
+
+            if (existingPatientEmail is not null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        private bool VerifyPhoneNumber(string phoneNumber)
+        {
+            var existingPatientEmailQuery = _repository.Patients.FindByCondition(p => p.Phone == phoneNumber);
+
+            var existingPatientEmail = existingPatientEmailQuery.FirstOrDefault();
+
+            if (existingPatientEmail is not null)
+            {
+                return false;
+            }
+
+            return true;
+        }
         #endregion
     }
+
 }

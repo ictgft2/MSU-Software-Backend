@@ -8,7 +8,7 @@ using MedicalUnitSystem.Services.Contracts;
 
 namespace MedicalUnitSystem.Services
 {
-    public class GenderService : IGenderService
+    public class GenderService
     {
         private readonly IRepositoryWrapper _repository;
         private readonly IMapper _mapper;
@@ -17,72 +17,72 @@ namespace MedicalUnitSystem.Services
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-        public Task<Result<CreateGenderResponseDto>> CreateGender(CreateGenderRequestDto gender)
-        {
-            var newGender = new Gender
-            {
-                GenderName = gender.GenderName
-            };
+        //public Task<Result<CreateGenderResponseDto>> CreateGender(CreateGenderRequestDto gender)
+        //{
+        //    var newGender = new Gender
+        //    {
+        //        GenderName = gender.GenderName
+        //    };
 
-            _repository.Genders.Create(newGender);
+        //    _repository.Genders.Create(newGender);
 
-            _repository.Save();
+        //    _repository.Save();
 
-            var response = _mapper.Map<CreateGenderResponseDto>(newGender);
+        //    var response = _mapper.Map<CreateGenderResponseDto>(newGender);
 
-            return Task.FromResult(Result.Success<CreateGenderResponseDto>(response));
-        }
+        //    return Task.FromResult(Result.Success<CreateGenderResponseDto>(response));
+        //}
 
-        public async Task<bool> GenderExistsAsync(int genderId)
-        {
-            return await _repository.Genders.GenderExistsAsync(genderId);
-        }
+        //public async Task<bool> GenderExistsAsync(int genderId)
+        //{
+        //    return await _repository.Genders.GenderExistsAsync(genderId);
+        //}
 
-        public Task<Result<GetGenderResponseDto>> GetGender(int genderId)
-        {
-            var existingGenderQuery = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
+        //public Task<Result<GetGenderResponseDto>> GetGender(int genderId)
+        //{
+        //    var existingGenderQuery = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
-            var gender = existingGenderQuery.FirstOrDefault();
+        //    var gender = existingGenderQuery.FirstOrDefault();
 
-            if (gender == null)
-            {
-                return Task.FromResult(Result.Failure<GetGenderResponseDto>($"Gender with Id:{genderId} not found"));
-            }
+        //    if (gender == null)
+        //    {
+        //        return Task.FromResult(Result.Failure<GetGenderResponseDto>($"Gender with Id:{genderId} not found"));
+        //    }
 
-            var response = _mapper.Map<GetGenderResponseDto>(gender);
+        //    var response = _mapper.Map<GetGenderResponseDto>(gender);
                 
-            return Task.FromResult(Result<GetGenderResponseDto>.Success(response));
-        }
+        //    return Task.FromResult(Result<GetGenderResponseDto>.Success(response));
+        //}
 
-        public Task<Result<List<GetGenderResponseDto>>> GetGenders()
-        {
-            var genders = _repository.Genders.FindAll();
+        //public Task<Result<List<GetGenderResponseDto>>> GetGenders()
+        //{
+        //    var genders = _repository.Genders.FindAll();
 
-            var response = _mapper.Map<List<GetGenderResponseDto>>(genders.ToList());
+        //    var response = _mapper.Map<List<GetGenderResponseDto>>(genders.ToList());
 
-            return Task.FromResult(Result<List<GetGenderResponseDto>>.Success(response));
-        }
+        //    return Task.FromResult(Result<List<GetGenderResponseDto>>.Success(response));
+        //}
 
-        public Task<Result<UpdateGenderResponseDto>> UpdateGender(int genderId, UpdateGenderRequestDto genderDetails)
-        {
-            var existingGender = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
+        //public Task<Result<UpdateGenderResponseDto>> UpdateGender(int genderId, UpdateGenderRequestDto genderDetails)
+        //{
+        //    var existingGender = _repository.Genders.FindByCondition(x => x.GenderId == genderId);
 
-            if (existingGender == null)
-            {
-                return Task.FromResult(Result.Failure<UpdateGenderResponseDto>($"Gender with Id:{genderId} not found"));
-            }
+        //    if (existingGender == null)
+        //    {
+        //        return Task.FromResult(Result.Failure<UpdateGenderResponseDto>($"Gender with Id:{genderId} not found"));
+        //    }
 
-            var updatedGender = existingGender.FirstOrDefault();
+        //    var updatedGender = existingGender.FirstOrDefault();
 
-           updatedGender.GenderName = genderDetails.GenderName;
+        //   updatedGender.GenderName = genderDetails.GenderName;
 
-            _repository.Genders.Update(updatedGender);
+        //    _repository.Genders.Update(updatedGender);
 
-            _repository.Save();
+        //    _repository.Save();
 
-            var response = _mapper.Map<UpdateGenderResponseDto>(updatedGender);
+        //    var response = _mapper.Map<UpdateGenderResponseDto>(updatedGender);
 
-            return Task.FromResult(Result<UpdateGenderResponseDto>.Success(response));
-        }
+        //    return Task.FromResult(Result<UpdateGenderResponseDto>.Success(response));
+        //}
     }
 }
