@@ -19,6 +19,20 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost",
+        policy =>
+        {
+            policy.WithOrigins(
+                "http://localhost:3000", // React / Next.js default
+                "http://localhost:4200"  // Angular default
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+        });
+});
+
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
