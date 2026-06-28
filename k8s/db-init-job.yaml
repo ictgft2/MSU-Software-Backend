@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gilead-db-init
+spec:
+  backoffLimit: 8
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: db-init
+          image: mcr.microsoft.com/mssql-tools
+          env:
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gilead-secrets
+                  key: MSSQL_SA_PASSWORD
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              echo "Waiting for SQL Server..."
+              until /opt/mssql-tools/bin/sqlcmd -S gilead-sqlserver,1433 -U sa -P "$MSSQL_SA_PASSWORD" -Q "SELECT 1" -b >/dev/null 2>&1; do
+                sleep 5
+              done
+
+              /opt/mssql-tools/bin/sqlcmd -S gilead-sqlserver,1433 -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF DB_ID('GileadDb') IS NULL CREATE DATABASE GileadDb;" -b
+
+              for file in /db/*.sql; do
+                echo "Running ${file}"
+                /opt/mssql-tools/bin/sqlcmd -S gilead-sqlserver,1433 -U sa -P "$MSSQL_SA_PASSWORD" -d GileadDb -i "$file" -b
+              done
+          volumeMounts:
+            - name: db-scripts
+              mountPath: /db
+      volumes:
+        - name: db-scripts
+          configMap:
+            name: gilead-db-scripts

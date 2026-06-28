@@ -1,0 +1,61 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: gilead
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - sqlserver.yaml
+  - redis.yaml
+  - api.yaml
+  - db-init-job.yaml
+
+configMapGenerator:
+  - name: gilead-db-scripts
+    files:
+      - 001-CreateTables.sql=../Gilead.DB/Tables/CreateTables.sql
+      - 002-CreateTVPs.sql=../Gilead.DB/TVPs/CreateTVPs.sql
+      - 101-usp_Patient_Insert.sql=../Gilead.DB/StoredProcedures/Patients/usp_Patient_Insert.sql
+      - 102-usp_Patient_GetById.sql=../Gilead.DB/StoredProcedures/Patients/usp_Patient_GetById.sql
+      - 103-usp_Patient_Search.sql=../Gilead.DB/StoredProcedures/Patients/usp_Patient_Search.sql
+      - 201-usp_Encounter_Insert.sql=../Gilead.DB/StoredProcedures/Encounters/usp_Encounter_Insert.sql
+      - 202-usp_Encounter_GetById.sql=../Gilead.DB/StoredProcedures/Encounters/usp_Encounter_GetById.sql
+      - 203-usp_Encounter_GetList.sql=../Gilead.DB/StoredProcedures/Encounters/usp_Encounter_GetList.sql
+      - 204-usp_Encounter_UpdateStatus.sql=../Gilead.DB/StoredProcedures/Encounters/usp_Encounter_UpdateStatus.sql
+      - 301-usp_VitalSigns_Insert.sql=../Gilead.DB/StoredProcedures/Vitals/usp_VitalSigns_Insert.sql
+      - 302-usp_VitalSigns_GetByEncounter.sql=../Gilead.DB/StoredProcedures/Vitals/usp_VitalSigns_GetByEncounter.sql
+      - 303-usp_VitalSigns_GetLatest.sql=../Gilead.DB/StoredProcedures/Vitals/usp_VitalSigns_GetLatest.sql
+      - 401-usp_Consultation_Insert.sql=../Gilead.DB/StoredProcedures/Consultation/usp_Consultation_Insert.sql
+      - 402-usp_Consultation_GetByEncounter.sql=../Gilead.DB/StoredProcedures/Consultation/usp_Consultation_GetByEncounter.sql
+      - 501-usp_Prescription_InsertBulk.sql=../Gilead.DB/StoredProcedures/Prescriptions/usp_Prescription_InsertBulk.sql
+      - 502-usp_Prescription_GetById.sql=../Gilead.DB/StoredProcedures/Prescriptions/usp_Prescription_GetById.sql
+      - 503-usp_Prescription_GetWorklist.sql=../Gilead.DB/StoredProcedures/Prescriptions/usp_Prescription_GetWorklist.sql
+      - 504-usp_Prescription_UpdateStatus.sql=../Gilead.DB/StoredProcedures/Prescriptions/usp_Prescription_UpdateStatus.sql
+      - 505-usp_Prescription_AllHandedOverForEncounter.sql=../Gilead.DB/StoredProcedures/Prescriptions/usp_Prescription_AllHandedOverForEncounter.sql
+      - 601-usp_LabRequest_InsertBulk.sql=../Gilead.DB/StoredProcedures/Lab/usp_LabRequest_InsertBulk.sql
+      - 602-usp_LabRequest_GetWorklist.sql=../Gilead.DB/StoredProcedures/Lab/usp_LabRequest_GetWorklist.sql
+      - 603-usp_LabRequest_GetById.sql=../Gilead.DB/StoredProcedures/Lab/usp_LabRequest_GetById.sql
+      - 604-usp_LabResult_Insert.sql=../Gilead.DB/StoredProcedures/Lab/usp_LabResult_Insert.sql
+      - 605-usp_LabResult_GetByEncounter.sql=../Gilead.DB/StoredProcedures/Lab/usp_LabResult_GetByEncounter.sql
+      - 701-usp_DressingOrder_Insert.sql=../Gilead.DB/StoredProcedures/Dressing/usp_DressingOrder_Insert.sql
+      - 702-usp_DressingOrder_GetWorklist.sql=../Gilead.DB/StoredProcedures/Dressing/usp_DressingOrder_GetWorklist.sql
+      - 703-usp_DressingOrder_GetById.sql=../Gilead.DB/StoredProcedures/Dressing/usp_DressingOrder_GetById.sql
+      - 704-usp_DressingOrder_Complete.sql=../Gilead.DB/StoredProcedures/Dressing/usp_DressingOrder_Complete.sql
+      - 801-usp_Dispensing_Insert.sql=../Gilead.DB/StoredProcedures/Dispensing/usp_Dispensing_Insert.sql
+      - 802-usp_Dispensing_GetById.sql=../Gilead.DB/StoredProcedures/Dispensing/usp_Dispensing_GetById.sql
+      - 901-usp_DrugHandover_Insert.sql=../Gilead.DB/StoredProcedures/Handover/usp_DrugHandover_Insert.sql
+      - 902-usp_DrugHandover_GetWorklist.sql=../Gilead.DB/StoredProcedures/Handover/usp_DrugHandover_GetWorklist.sql
+      - 903-usp_DrugHandover_GetById.sql=../Gilead.DB/StoredProcedures/Handover/usp_DrugHandover_GetById.sql
+      - 904-usp_DrugHandover_Confirm.sql=../Gilead.DB/StoredProcedures/Handover/usp_DrugHandover_Confirm.sql
+      - 1001-usp_ContactTrace_Insert.sql=../Gilead.DB/StoredProcedures/ContactTrace/usp_ContactTrace_Insert.sql
+      - 1002-usp_ContactTrace_GetByEncounter.sql=../Gilead.DB/StoredProcedures/ContactTrace/usp_ContactTrace_GetByEncounter.sql
+      - 1003-usp_ContactTrace_Update.sql=../Gilead.DB/StoredProcedures/ContactTrace/usp_ContactTrace_Update.sql
+      - 1101-usp_Register_GetDrugs.sql=../Gilead.DB/StoredProcedures/Register/usp_Register_GetDrugs.sql
+      - 1102-usp_Register_ExportDrugs.sql=../Gilead.DB/StoredProcedures/Register/usp_Register_ExportDrugs.sql
+      - 1201-usp_ServiceWindow_Insert.sql=../Gilead.DB/StoredProcedures/ServiceWindow/usp_ServiceWindow_Insert.sql
+      - 1202-usp_ServiceWindow_GetCurrent.sql=../Gilead.DB/StoredProcedures/ServiceWindow/usp_ServiceWindow_GetCurrent.sql
+      - 1203-usp_ServiceWindow_Update.sql=../Gilead.DB/StoredProcedures/ServiceWindow/usp_ServiceWindow_Update.sql
+
+generatorOptions:
+  disableNameSuffixHash: true
