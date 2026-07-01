@@ -5,7 +5,7 @@ This bundle runs:
 - `Gilead.API` ASP.NET Core API
 - SQL Server 2022
 - Redis 7
-- A one-shot database initialization job for tables, TVPs, and stored procedures
+- A one-shot database initialization job that waits for SQL Server and creates the database
 
 ## Build and Push Image
 
@@ -18,7 +18,7 @@ Update `k8s/api.yaml` with your image name, or patch it during deploy.
 
 ## Secrets
 
-Replace the placeholder SQL Server password in `k8s/secrets.yaml` before applying. SQL Server requires a strong password.
+Replace the placeholder SQL Server and Redis passwords in `k8s/secrets.yaml` before applying. SQL Server requires a strong password.
 
 ## Deploy
 
@@ -33,6 +33,8 @@ kubectl -n gilead rollout status deployment/gilead-api
 kubectl -n gilead get pods
 kubectl -n gilead logs job/gilead-db-init
 ```
+
+The API runs DbUp migrations on startup from SQL scripts embedded in `Gilead.Infrastructure`.
 
 ## Local Port Forward
 

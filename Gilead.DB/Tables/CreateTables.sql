@@ -149,6 +149,8 @@ CREATE TABLE dbo.ServiceTimeWindows (
     CreatedAt datetimeoffset NOT NULL
 );
 
+GO
+
 CREATE VIEW dbo.vw_DrugRegister AS
 SELECT
     h.Id AS HandoverId,
@@ -166,3 +168,5 @@ FROM dbo.DrugHandovers h
 JOIN dbo.Dispensings d ON d.Id = h.DispensingId
 JOIN dbo.Prescriptions p ON p.Id = d.PrescriptionId
 WHERE h.HandoverAt IS NOT NULL;
+
+GO

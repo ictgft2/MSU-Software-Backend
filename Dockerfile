@@ -12,6 +12,7 @@ COPY Gilead.API/ Gilead.API/
 COPY Gilead.Application/ Gilead.Application/
 COPY Gilead.Domain/ Gilead.Domain/
 COPY Gilead.Infrastructure/ Gilead.Infrastructure/
+COPY Gilead.DB/ Gilead.DB/
 RUN dotnet publish Gilead.API/Gilead.API.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

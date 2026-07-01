@@ -37,10 +37,12 @@ The API reads these keys:
 ```json
 {
   "ConnectionStrings": {
-    "GileadDb": "Server=localhost;Database=GileadDb;Trusted_Connection=True;TrustServerCertificate=True"
+    "GileadDb": "Server=localhost,1433;Database=GileadDb;User Id=sa;Password=Change_this_Strong_Password_123!;TrustServerCertificate=True"
   },
   "Redis": {
     "ConnectionString": "localhost:6379",
+    "User": "",
+    "Password": "Change_this_Redis_Password_123!",
     "InstanceName": "gilead:"
   }
 }
@@ -51,12 +53,14 @@ In containers or Kubernetes, override with environment variables:
 ```text
 ConnectionStrings__GileadDb
 Redis__ConnectionString
+Redis__User
+Redis__Password
 Redis__InstanceName
 ```
 
 ## Database Setup
 
-Create a SQL Server database named `GileadDb`, then run scripts in this order:
+The API runs DbUp migrations on application startup. Migration scripts are embedded from:
 
 ```text
 Gilead.DB/Tables/CreateTables.sql
@@ -64,7 +68,7 @@ Gilead.DB/TVPs/CreateTVPs.sql
 Gilead.DB/StoredProcedures/**/*.sql
 ```
 
-The Kubernetes bundle includes a `gilead-db-init` job that creates the database and runs these scripts from a generated ConfigMap.
+DbUp creates the `GileadDb` database if it does not exist, records executed scripts in its schema journal, and skips them on later starts. The Kubernetes bundle includes a `gilead-db-init` job only to wait for SQL Server and create the database before API pods run migrations.
 
 ## Local Run
 
@@ -106,6 +110,7 @@ Run requires reachable SQL Server and Redis:
 docker run --rm -p 8080:8080 \
   -e ConnectionStrings__GileadDb="Server=host.docker.internal,1433;Database=GileadDb;User Id=sa;Password=YourStrongPassword!;TrustServerCertificate=True" \
   -e Redis__ConnectionString="host.docker.internal:6379" \
+  -e Redis__Password="YourStrongRedisPassword!" \
   gilead-api:latest
 ```
 
@@ -113,7 +118,7 @@ docker run --rm -p 8080:8080 \
 
 Update:
 
-- `k8s/secrets.yaml`: replace the placeholder SQL Server password.
+- `k8s/secrets.yaml`: replace the placeholder SQL Server and Redis passwords.
 - `k8s/api.yaml`: replace `ghcr.io/your-org/gilead-api:latest` with your pushed image.
 
 Deploy:
