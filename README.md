@@ -70,6 +70,31 @@ Gilead.DB/StoredProcedures/**/*.sql
 
 DbUp creates the `GileadDb` database if it does not exist, records executed scripts in its schema journal, and skips them on later starts. The Kubernetes bundle includes a `gilead-db-init` job only to wait for SQL Server and create the database before API pods run migrations.
 
+### Test Data
+
+Optional refreshable seed data is available at:
+
+```text
+Gilead.DB/Seed/TestData.sql
+```
+
+Run it after the API has created the schema:
+
+```bash
+sqlcmd -S localhost,1433 -d GileadDb -U sa -P 'YourStrongPassword!' -C -i Gilead.DB/Seed/TestData.sql
+```
+
+The script deletes and recreates only its deterministic seed rows, sets today's cold-case service window to open all day, and covers queued, pharmacy, lab, dressing, handover, discharged, referred, contact-trace, and drug-register scenarios.
+
+Postman files for the seeded data are available at:
+
+```text
+Postman/Gilead.API.postman_collection.json
+Postman/Gilead.Local.postman_environment.json
+```
+
+Import both into Postman, select the `Gilead Local Seeded` environment, and run requests against the local API at `http://localhost:5000`. The environment contains the seeded patient, encounter, prescription, lab request, dressing order, and handover IDs.
+
 ## Local Run
 
 Build:

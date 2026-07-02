@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Gilead.API.Middleware;
 using Gilead.Application.Services;
 using Gilead.Infrastructure;
 using Gilead.Infrastructure.Data;
@@ -18,6 +19,8 @@ builder.Services.AddGileadCache(builder.Configuration);
 DatabaseMigrationRunner.Migrate(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

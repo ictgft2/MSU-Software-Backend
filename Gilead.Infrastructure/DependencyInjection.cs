@@ -12,6 +12,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddGileadRepositories(this IServiceCollection services)
     {
+        DapperTypeHandlers.Register();
+
         services.AddSingleton<SqlConnectionFactory>();
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IEncounterRepository, EncounterRepository>();

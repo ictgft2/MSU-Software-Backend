@@ -166,18 +166,34 @@ public sealed class ConsultationRepository(SqlConnectionFactory factory) : ICons
     private static DataTable PrescriptionTable(IEnumerable<Prescription> rows)
     {
         var table = new DataTable();
-        foreach (var name in new[] { "Id", "ConsultationNoteId", "EncounterId", "DrugName", "Dosage", "Frequency", "Duration", "Route", "Instructions", "Status", "IssuedAt" })
-            table.Columns.Add(name);
+        table.Columns.Add("Id", typeof(Guid));
+        table.Columns.Add("ConsultationNoteId", typeof(Guid));
+        table.Columns.Add("EncounterId", typeof(Guid));
+        table.Columns.Add("DrugName", typeof(string));
+        table.Columns.Add("Dosage", typeof(string));
+        table.Columns.Add("Frequency", typeof(string));
+        table.Columns.Add("Duration", typeof(string));
+        table.Columns.Add("Route", typeof(string));
+        table.Columns.Add("Instructions", typeof(string));
+        table.Columns.Add("Status", typeof(string));
+        table.Columns.Add("IssuedAt", typeof(DateTimeOffset));
+
         foreach (var r in rows)
-            table.Rows.Add(r.Id, r.ConsultationNoteId, r.EncounterId, r.DrugName, r.Dosage, r.Frequency, r.Duration, r.Route.ToString(), r.Instructions, r.Status.ToString(), r.IssuedAt);
+            table.Rows.Add(r.Id, r.ConsultationNoteId, r.EncounterId, r.DrugName, r.Dosage, r.Frequency, r.Duration, r.Route.ToString(), r.Instructions ?? (object)DBNull.Value, r.Status.ToString(), r.IssuedAt);
         return table;
     }
 
     private static DataTable LabRequestTable(IEnumerable<LabRequest> rows)
     {
         var table = new DataTable();
-        foreach (var name in new[] { "Id", "ConsultationNoteId", "EncounterId", "TestName", "ClinicalIndication", "Status", "RequestedAt" })
-            table.Columns.Add(name);
+        table.Columns.Add("Id", typeof(Guid));
+        table.Columns.Add("ConsultationNoteId", typeof(Guid));
+        table.Columns.Add("EncounterId", typeof(Guid));
+        table.Columns.Add("TestName", typeof(string));
+        table.Columns.Add("ClinicalIndication", typeof(string));
+        table.Columns.Add("Status", typeof(string));
+        table.Columns.Add("RequestedAt", typeof(DateTimeOffset));
+
         foreach (var r in rows)
             table.Rows.Add(r.Id, r.ConsultationNoteId, r.EncounterId, r.TestName, r.ClinicalIndication, r.Status.ToString(), r.RequestedAt);
         return table;
