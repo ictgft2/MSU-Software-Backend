@@ -23,38 +23,37 @@
 #ENTRYPOINT ["dotnet", "Gilead.API.dll"]
 #
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM ://microsoft.com AS build
 WORKDIR /src
 
 # Copy the solution file
 COPY Gilead.sln ./
 
-# Copy ALL project files first to leverage Docker layer caching
+# Copy project files for caching
 COPY Gilead.API/Gilead.API.csproj Gilead.API/
 COPY Gilead.Application/Gilead.Application.csproj Gilead.Application/
 COPY Gilead.Domain/Gilead.Domain.csproj Gilead.Domain/
 COPY Gilead.Infrastructure/Gilead.Infrastructure.csproj Gilead.Infrastructure/
-COPY Gilead.DB/Gilead.DB.csproj Gilead.DB/
 
-# Restore dependencies using the solution file to catch all projects
+# Restore dependencies
 RUN dotnet restore Gilead.sln
 
-# Copy the rest of the source code
+# Copy the source code
 COPY Gilead.API/ Gilead.API/
 COPY Gilead.Application/ Gilead.Application/
 COPY Gilead.Domain/ Gilead.Domain/
 COPY Gilead.Infrastructure/ Gilead.Infrastructure/
-COPY Gilead.DB/ Gilead.DB/
 
-# Build and publish the web API
+# Build and publish
 RUN dotnet publish Gilead.API/Gilead.API.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM ://microsoft.com AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Update port to 10000 for seamless Render compatibility
+# Render compatibility settings
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 ENTRYPOINT ["dotnet", "Gilead.API.dll"]
+
