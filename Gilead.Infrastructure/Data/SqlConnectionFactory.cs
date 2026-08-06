@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
 namespace Gilead.Infrastructure.Data;
 
@@ -11,13 +12,13 @@ public sealed class SqlConnectionFactory(IConfiguration configuration)
 
         var connectionString = configuration.GetConnectionString("GileadDb")
             ?? throw new InvalidOperationException("ConnectionStrings:GileadDb is not configured.");
-        
+
         // Check if Render provided a postgres:// URL, and convert it
         if (connectionString != null && connectionString.StartsWith("postgres://"))
         {
             var databaseUri = new Uri(connectionString);
             var userInfo = databaseUri.UserInfo.Split(':');
-        
+
             var builder = new NpgsqlConnectionStringBuilder
             {
                 Host = databaseUri.Host,
@@ -28,7 +29,7 @@ public sealed class SqlConnectionFactory(IConfiguration configuration)
                 SslMode = SslMode.Require,
                 TrustServerCertificate = true // Required for Render's managed certificates
             };
-        
+
             _connectionString = builder.ToString();
         }
         else
