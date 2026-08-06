@@ -52,8 +52,9 @@ FROM ://microsoft.com AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render compatibility settings
-ENV ASPNETCORE_URLS=http://+:10000
+# Wrap the value in quotes to fix the parser error
+ENV ASPNETCORE_URLS="http://+:10000"
 EXPOSE 10000
 ENTRYPOINT ["dotnet", "Gilead.API.dll"]
+
 
