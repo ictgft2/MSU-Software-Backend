@@ -36,7 +36,7 @@ public sealed class SqlConnectionFactory(IConfiguration configuration)
         {
             _connectionString = connectionString;
         }
-        return new SqlConnection(connectionString);
+        return new SqlConnection(_connectionString);
     }
 
     public async Task<SqlConnection> CreateOpenConnectionAsync(CancellationToken cancellationToken)
