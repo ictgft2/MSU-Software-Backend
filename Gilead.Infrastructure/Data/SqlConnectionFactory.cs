@@ -10,31 +10,47 @@ public sealed class SqlConnectionFactory(IConfiguration configuration)
     {
         string _connectionString = "";
 
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                        ?? configuration.GetConnectionString("GileadDb");
-        // Check if Render provided a postgres:// URL, and convert it
-        if (connectionString != null && connectionString.StartsWith("postgres://"))
-        {
-            var databaseUri = new Uri(connectionString);
-            var userInfo = databaseUri.UserInfo.Split(':');
+        // 1. Check every possible key variation across providers
+        string? renderUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+        string? configUrl = configuration["DATABASE_URL"];
+        string? gileadDbEnv = Environment.GetEnvironmentVariable("ConnectionStrings__GileadDb");
+        string? gileadDbConfig = configuration.GetConnectionString("GileadDb");
 
-            var builder = new NpgsqlConnectionStringBuilder
+        // 2. Print absolute diagnostics to your Render Log screen
+        Console.WriteLine($"[DIAGNOSTICS] Env(DATABASE_URL): {(string.IsNullOrEmpty(renderUrl) ? "MISSING" : "FOUND")}");
+        Console.WriteLine($"[DIAGNOSTICS] Config(DATABASE_URL): {(string.IsNullOrEmpty(configUrl) ? "MISSING" : "FOUND")}");
+        Console.WriteLine($"[DIAGNOSTICS] Env(ConnectionStrings__GileadDb): {(string.IsNullOrEmpty(gileadDbEnv) ? "MISSING" : "FOUND")}");
+        Console.WriteLine($"[DIAGNOSTICS] Config(GileadDb): {(string.IsNullOrEmpty(gileadDbConfig) ? "MISSING" : "FOUND")}");
+
+        // 3. Fallback hierarchy assignment
+        string? rawConnectionString = renderUrl ?? configUrl ?? gileadDbEnv ?? gileadDbConfig;
+
+        if (string.IsNullOrEmpty(rawConnectionString))
+        {
+            throw new InvalidOperationException("CRITICAL ERROR: No database connection string detected anywhere!");
+        }
+
+        // 4. Transform if it's a postgres:// URL
+        if (rawConnectionString.StartsWith("postgres://"))
+        {
+            var uri = new Uri(rawConnectionString);
+            var userInfo = uri.UserInfo.Split(':');
+            var builder = new Npgsql.NpgsqlConnectionStringBuilder
             {
-                Host = databaseUri.Host,
-                Port = databaseUri.Port,
+                Host = uri.Host,
+                Port = uri.Port,
                 Username = userInfo[0],
                 Password = userInfo.Length > 1 ? userInfo[1] : "",
-                Database = databaseUri.LocalPath.TrimStart('/'),
-                SslMode = SslMode.Require,
-                TrustServerCertificate = true // Required for Render's managed certificates
+                Database = uri.LocalPath.TrimStart('/'),
+                SslMode = Npgsql.SslMode.Require,
+                TrustServerCertificate = true
             };
+            rawConnectionString = builder.ToString();
+        }
 
-            _connectionString = builder.ToString();
-        }
-        else
-        {
-            _connectionString = connectionString;
-        }
+        _connectionString = rawConnectionString;
+
+
         return new SqlConnection(_connectionString);
     }
 
