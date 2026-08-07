@@ -10,9 +10,8 @@ public sealed class SqlConnectionFactory(IConfiguration configuration)
     {
         string _connectionString = "";
 
-        var connectionString = configuration.GetConnectionString("GileadDb")
-            ?? throw new InvalidOperationException("ConnectionStrings:GileadDb is not configured.");
-
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                        ?? configuration.GetConnectionString("GileadDb");
         // Check if Render provided a postgres:// URL, and convert it
         if (connectionString != null && connectionString.StartsWith("postgres://"))
         {
