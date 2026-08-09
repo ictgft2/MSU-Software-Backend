@@ -1,9 +1,10 @@
-using System.Reflection;
 using DbUp;
 using DbUp.Engine;
 using DbUp.Support;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
+using System.Reflection;
 
 namespace Gilead.Infrastructure.Data;
 
@@ -13,19 +14,44 @@ public static class DatabaseMigrationRunner
 
     public static void Migrate(IConfiguration configuration)
     {
+        string _connectionString = "";
+
         var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
                         ?? configuration.GetConnectionString("GileadDb");
 
-        EnsureDatabase.For.SqlDatabase(connectionString);
+        if (connectionString != null && connectionString.StartsWith("postgres://"))
+        {
+            var databaseUri = new Uri(connectionString);
+            var userInfo = databaseUri.UserInfo.Split(':');
 
-        using var lockConnection = new SqlConnection(connectionString);
+            var builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = databaseUri.Host,
+                Port = databaseUri.Port,
+                Username = userInfo[0],
+                Password = userInfo.Length > 1 ? userInfo[1] : "",
+                Database = databaseUri.LocalPath.TrimStart('/'),
+                SslMode = SslMode.Require,
+                TrustServerCertificate = true // Required for Render's managed certificates
+            };
+
+            _connectionString = builder.ToString();
+        }
+        else
+        {
+            _connectionString = connectionString;
+        }
+
+        EnsureDatabase.For.SqlDatabase(_connectionString);
+
+        using var lockConnection = new SqlConnection(_connectionString);
         lockConnection.Open();
         AcquireMigrationLock(lockConnection);
 
         try
         {
             var assembly = typeof(DatabaseMigrationRunner).Assembly;
-            var runOnceUpgrader = CreateRunOnceUpgrader(connectionString, assembly);
+            var runOnceUpgrader = CreateRunOnceUpgrader(_connectionString, assembly);
             var result = ShouldBaselineExistingSchema(lockConnection)
                 ? runOnceUpgrader.MarkAsExecuted()
                 : runOnceUpgrader.PerformUpgrade();
@@ -35,7 +61,7 @@ public static class DatabaseMigrationRunner
                 throw new InvalidOperationException("Database migration failed.", result.Error);
             }
 
-            var repeatableResult = CreateRepeatableProcedureUpgrader(connectionString, assembly).PerformUpgrade();
+            var repeatableResult = CreateRepeatableProcedureUpgrader(_connectionString, assembly).PerformUpgrade();
             if (!repeatableResult.Successful)
             {
                 throw new InvalidOperationException("Database procedure migration failed.", repeatableResult.Error);
