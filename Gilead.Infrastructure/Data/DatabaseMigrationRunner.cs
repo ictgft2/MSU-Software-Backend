@@ -13,8 +13,8 @@ public static class DatabaseMigrationRunner
 
     public static void Migrate(IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("GileadDb")
-            ?? throw new InvalidOperationException("ConnectionStrings:GileadDb is not configured.");
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                        ?? configuration.GetConnectionString("GileadDb");
 
         EnsureDatabase.For.SqlDatabase(connectionString);
 

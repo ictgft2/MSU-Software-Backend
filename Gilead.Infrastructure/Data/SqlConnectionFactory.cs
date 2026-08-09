@@ -10,47 +10,31 @@ public sealed class SqlConnectionFactory(IConfiguration configuration)
     {
         string _connectionString = "";
 
-        // 1. Check every possible key variation across providers
-        string? renderUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-        string? configUrl = configuration["DATABASE_URL"];
-        string? gileadDbEnv = Environment.GetEnvironmentVariable("ConnectionStrings__GileadDb");
-        string? gileadDbConfig = configuration.GetConnectionString("GileadDb");
-
-        // 2. Print absolute diagnostics to your Render Log screen
-        Console.WriteLine($"[DIAGNOSTICS] Env(DATABASE_URL): {(string.IsNullOrEmpty(renderUrl) ? "MISSING" : "FOUND")}");
-        Console.WriteLine($"[DIAGNOSTICS] Config(DATABASE_URL): {(string.IsNullOrEmpty(configUrl) ? "MISSING" : "FOUND")}");
-        Console.WriteLine($"[DIAGNOSTICS] Env(ConnectionStrings__GileadDb): {(string.IsNullOrEmpty(gileadDbEnv) ? "MISSING" : "FOUND")}");
-        Console.WriteLine($"[DIAGNOSTICS] Config(GileadDb): {(string.IsNullOrEmpty(gileadDbConfig) ? "MISSING" : "FOUND")}");
-
-        // 3. Fallback hierarchy assignment
-        string? rawConnectionString = renderUrl ?? configUrl ?? gileadDbEnv ?? gileadDbConfig;
-
-        if (string.IsNullOrEmpty(rawConnectionString))
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                        ?? configuration.GetConnectionString("GileadDb");
+        // Check if Render provided a postgres:// URL, and convert it
+        if (connectionString != null && connectionString.StartsWith("postgres://"))
         {
-            throw new InvalidOperationException("CRITICAL ERROR: No database connection string detected anywhere!");
-        }
+            var databaseUri = new Uri(connectionString);
+            var userInfo = databaseUri.UserInfo.Split(':');
 
-        // 4. Transform if it's a postgres:// URL
-        if (rawConnectionString.StartsWith("postgres://"))
-        {
-            var uri = new Uri(rawConnectionString);
-            var userInfo = uri.UserInfo.Split(':');
-            var builder = new Npgsql.NpgsqlConnectionStringBuilder
+            var builder = new NpgsqlConnectionStringBuilder
             {
-                Host = uri.Host,
-                Port = uri.Port,
+                Host = databaseUri.Host,
+                Port = databaseUri.Port,
                 Username = userInfo[0],
                 Password = userInfo.Length > 1 ? userInfo[1] : "",
-                Database = uri.LocalPath.TrimStart('/'),
-                SslMode = Npgsql.SslMode.Require,
-                TrustServerCertificate = true
+                Database = databaseUri.LocalPath.TrimStart('/'),
+                SslMode = SslMode.Require,
+                TrustServerCertificate = true // Required for Render's managed certificates
             };
-            rawConnectionString = builder.ToString();
+
+            _connectionString = builder.ToString();
         }
-
-        _connectionString = rawConnectionString;
-
-
+        else
+        {
+            _connectionString = connectionString;
+        }
         return new SqlConnection(_connectionString);
     }
 
