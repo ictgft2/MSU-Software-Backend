@@ -41,6 +41,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(AllowAnyCorsPolicy);
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
+app.MapGet("/health", async (PostgresConnectionFactory connectionFactory, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        await using var connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT 1";
+        await command.ExecuteScalarAsync(cancellationToken);
+        return Results.Ok(new { status = "Healthy", database = "PostgreSQL" });
+    }
+    catch
+    {
+        return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Database unavailable");
+    }
+});
 app.MapControllers();
 app.Run();

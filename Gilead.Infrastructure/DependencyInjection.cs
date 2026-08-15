@@ -14,7 +14,7 @@ public static class DependencyInjection
     {
         DapperTypeHandlers.Register();
 
-        services.AddSingleton<SqlConnectionFactory>();
+        services.AddSingleton<PostgresConnectionFactory>();
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IEncounterRepository, EncounterRepository>();
         services.AddScoped<IVitalsRepository, VitalsRepository>();

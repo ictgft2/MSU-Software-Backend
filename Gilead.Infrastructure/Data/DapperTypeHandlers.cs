@@ -16,6 +16,7 @@ internal static class DapperTypeHandlers
 
         SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
         SqlMapper.AddTypeHandler(new TimeOnlyTypeHandler());
+        SqlMapper.AddTypeHandler(new DateTimeOffsetTypeHandler());
     }
 
     private sealed class DateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
@@ -52,6 +53,24 @@ internal static class DapperTypeHandlers
         {
             parameter.DbType = DbType.Time;
             parameter.Value = value.ToTimeSpan();
+        }
+    }
+
+    private sealed class DateTimeOffsetTypeHandler : SqlMapper.TypeHandler<DateTimeOffset>
+    {
+        public override DateTimeOffset Parse(object value) =>
+            value switch
+            {
+                DateTime dateTime => new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)),
+                DateTimeOffset dateTimeOffset => dateTimeOffset.ToUniversalTime(),
+                string text => DateTimeOffset.Parse(text).ToUniversalTime(),
+                _ => throw new DataException($"Cannot convert {value.GetType().Name} to DateTimeOffset.")
+            };
+
+        public override void SetValue(IDbDataParameter parameter, DateTimeOffset value)
+        {
+            parameter.DbType = DbType.DateTime;
+            parameter.Value = value.UtcDateTime;
         }
     }
 }

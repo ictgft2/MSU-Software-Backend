@@ -1,9 +1,12 @@
-CREATE OR ALTER PROCEDURE dbo.usp_ContactTrace_Insert
-    @Id uniqueidentifier, @EncounterId uniqueidentifier, @RecordedBy uniqueidentifier, @NextOfKinName nvarchar(200),
-    @NextOfKinPhone nvarchar(40), @NextOfKinRelationship nvarchar(100), @ResidentialAddress nvarchar(500),
-    @WorkplaceAddress nvarchar(500), @DischargeNotes nvarchar(max), @ReferralDestination nvarchar(250) = NULL, @RecordedAt datetimeoffset
-AS
-BEGIN
-    INSERT dbo.ContactTraces VALUES (@Id, @EncounterId, @RecordedBy, @NextOfKinName, @NextOfKinPhone, @NextOfKinRelationship, @ResidentialAddress, @WorkplaceAddress, @DischargeNotes, @ReferralDestination, @RecordedAt);
-    SELECT * FROM dbo.ContactTraces WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_ContactTrace_Insert(
+    uuid, uuid, uuid, varchar(200), varchar(40), varchar(100), varchar(500), varchar(500), text, varchar(250), timestamptz)
+RETURNS SETOF public.ContactTraces
+LANGUAGE sql
+VOLATILE
+AS $function$
+    INSERT INTO public.ContactTraces (
+        Id, EncounterId, RecordedBy, NextOfKinName, NextOfKinPhone, NextOfKinRelationship,
+        ResidentialAddress, WorkplaceAddress, DischargeNotes, ReferralDestination, RecordedAt)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING *;
+$function$;

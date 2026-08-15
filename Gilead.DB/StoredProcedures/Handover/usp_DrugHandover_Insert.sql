@@ -1,9 +1,12 @@
-CREATE OR ALTER PROCEDURE dbo.usp_DrugHandover_Insert
-    @Id uniqueidentifier, @DispensingId uniqueidentifier, @EncounterId uniqueidentifier, @ProtocolOfficerId uniqueidentifier = NULL,
-    @PatientNameVerified bit = 0, @DrugListVerified bit = 0, @DosageCounsellingDone bit = 0, @DurationCounsellingDone bit = 0,
-    @CounsellingNotes nvarchar(1000) = NULL, @HandoverAt datetimeoffset = NULL
-AS
-BEGIN
-    INSERT dbo.DrugHandovers VALUES (@Id, @DispensingId, @EncounterId, @ProtocolOfficerId, @PatientNameVerified, @DrugListVerified, @DosageCounsellingDone, @DurationCounsellingDone, @CounsellingNotes, @HandoverAt);
-    SELECT * FROM dbo.DrugHandovers WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_DrugHandover_Insert(
+    uuid, uuid, uuid, uuid, boolean, boolean, boolean, boolean, varchar(1000), timestamptz)
+RETURNS SETOF public.DrugHandovers
+LANGUAGE sql
+VOLATILE
+AS $function$
+    INSERT INTO public.DrugHandovers (
+        Id, DispensingId, EncounterId, ProtocolOfficerId, PatientNameVerified, DrugListVerified,
+        DosageCounsellingDone, DurationCounsellingDone, CounsellingNotes, HandoverAt)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING *;
+$function$;

@@ -3,6 +3,5 @@
 .git/
 .gitignore
 k8s/
-Gilead.DB/
 *.user
 *.suo

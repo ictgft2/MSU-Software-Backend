@@ -1,4 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.usp_LabRequest_GetById @RequestId uniqueidentifier AS
-BEGIN
-    SELECT * FROM dbo.LabRequests WHERE Id = @RequestId;
-END
+CREATE OR REPLACE FUNCTION public.usp_LabRequest_GetById(uuid)
+RETURNS SETOF public.LabRequests
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT * FROM public.LabRequests WHERE Id = $1;
+$function$;

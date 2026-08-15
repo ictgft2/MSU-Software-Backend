@@ -1,4 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.usp_Dispensing_GetById @Id uniqueidentifier AS
-BEGIN
-    SELECT * FROM dbo.Dispensings WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_Dispensing_GetById(uuid)
+RETURNS SETOF public.Dispensings
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT * FROM public.Dispensings WHERE Id = $1;
+$function$;

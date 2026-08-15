@@ -1,5 +1,5 @@
 using System.Data;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace Gilead.API.Middleware;
 
@@ -57,7 +57,7 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             BadHttpRequestException => (StatusCodes.Status400BadRequest, "Invalid request."),
             DataException => (StatusCodes.Status500InternalServerError, "A data mapping error occurred."),
-            SqlException => (StatusCodes.Status500InternalServerError, "A database error occurred."),
+            NpgsqlException => (StatusCodes.Status500InternalServerError, "A database error occurred."),
             TimeoutException => (StatusCodes.Status503ServiceUnavailable, "The request timed out."),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected server error occurred.")
         };

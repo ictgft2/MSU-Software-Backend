@@ -15,17 +15,17 @@ The codebase follows Clean Architecture:
 Gilead.API             HTTP controllers and API startup
 Gilead.Application     DTOs, service interfaces, business logic, ServiceResult
 Gilead.Domain          Entities and enums
-Gilead.Infrastructure  Dapper repositories, SQL connection factory, Redis queue cache
-Gilead.DB              SQL Server tables, TVPs, stored procedures
-k8s                    Kubernetes resources for API, SQL Server, Redis, and DB init
+Gilead.Infrastructure  Dapper repositories, PostgreSQL connection factory, Redis queue cache
+Gilead.DB              PostgreSQL tables, functions, views, and seed data
+k8s                    Kubernetes resources for API, PostgreSQL, Redis, and DB init
 ```
 
-Data access is Dapper-only and runs through repository classes. SQL operations are implemented as stored procedures. Bulk inserts use SQL Server table-valued parameters. The cold-case waiting queue uses Redis sorted sets.
+Data access is Dapper-only and runs through repository classes. SQL operations are implemented as PostgreSQL functions. Bulk prescription and lab-request inserts use set-based JSONB recordsets. The cold-case waiting queue uses Redis sorted sets.
 
 ## Runtime Requirements
 
 - .NET 8 SDK
-- SQL Server
+- PostgreSQL 16 or newer
 - Redis
 - Docker, if building containers
 - Kubernetes and `kubectl`, if deploying to Kubernetes
@@ -37,7 +37,7 @@ The API reads these keys:
 ```json
 {
   "ConnectionStrings": {
-    "GileadDb": "Server=localhost,1433;Database=GileadDb;User Id=sa;Password=Change_this_Strong_Password_123!;TrustServerCertificate=True"
+    "GileadDb": "Host=localhost;Port=5432;Database=GileadDb;Username=gilead;Password=Change_this_Postgres_Password_123!;Timezone=UTC"
   },
   "Redis": {
     "ConnectionString": "localhost:6379",
@@ -64,11 +64,10 @@ The API runs DbUp migrations on application startup. Migration scripts are embed
 
 ```text
 Gilead.DB/Tables/CreateTables.sql
-Gilead.DB/TVPs/CreateTVPs.sql
 Gilead.DB/StoredProcedures/**/*.sql
 ```
 
-DbUp creates the `GileadDb` database if it does not exist, records executed scripts in its schema journal, and skips them on later starts. The Kubernetes bundle includes a `gilead-db-init` job only to wait for SQL Server and create the database before API pods run migrations.
+DbUp creates the `GileadDb` database if it does not exist, records executed schema scripts in its journal, and refreshes PostgreSQL functions on later starts. The Kubernetes PostgreSQL container creates the configured database; `gilead-db-init` verifies that it is ready before API pods run migrations.
 
 ### Test Data
 
@@ -81,10 +80,18 @@ Gilead.DB/Seed/TestData.sql
 Run it after the API has created the schema:
 
 ```bash
-sqlcmd -S localhost,1433 -d GileadDb -U sa -P 'YourStrongPassword!' -C -i Gilead.DB/Seed/TestData.sql
+PGPASSWORD='YourStrongPassword!' psql -h localhost -p 5432 -U gilead -d GileadDb -v ON_ERROR_STOP=1 -f Gilead.DB/Seed/TestData.sql
 ```
 
 The script deletes and recreates only its deterministic seed rows, sets today's cold-case service window to open all day, and covers queued, pharmacy, lab, dressing, handover, discharged, referred, contact-trace, and drug-register scenarios.
+
+Run the non-destructive migration verification suite after seeding:
+
+```bash
+PGPASSWORD='YourStrongPassword!' psql -h localhost -p 5432 -U gilead -d GileadDb -v ON_ERROR_STOP=1 -f Gilead.DB/Verification/VerifyMigration.sql
+```
+
+It validates every PostgreSQL function, bulk inserts, case-insensitive search, pagination, UUIDs, UTC timestamps, numeric precision, and transaction rollback. Its write checks run inside a transaction that is rolled back.
 
 Postman files for the seeded data are available at:
 
@@ -129,11 +136,17 @@ Build the API image:
 docker build -t gilead-api:latest .
 ```
 
-Run requires reachable SQL Server and Redis:
+Start the complete development stack (PostgreSQL, Redis, and API):
+
+```bash
+docker compose up --build
+```
+
+To run only the image, provide reachable PostgreSQL and Redis services:
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -e ConnectionStrings__GileadDb="Server=host.docker.internal,1433;Database=GileadDb;User Id=sa;Password=YourStrongPassword!;TrustServerCertificate=True" \
+  -e ConnectionStrings__GileadDb="Host=host.docker.internal;Port=5432;Database=GileadDb;Username=gilead;Password=YourStrongPassword!;Timezone=UTC" \
   -e Redis__ConnectionString="host.docker.internal:6379" \
   -e Redis__Password="YourStrongRedisPassword!" \
   gilead-api:latest
@@ -143,7 +156,7 @@ docker run --rm -p 8080:8080 \
 
 Update:
 
-- `k8s/secrets.yaml`: replace the placeholder SQL Server and Redis passwords.
+- `k8s/secrets.yaml`: replace the placeholder PostgreSQL and Redis passwords.
 - `k8s/api.yaml`: replace `ghcr.io/your-org/gilead-api:latest` with your pushed image.
 
 Deploy:

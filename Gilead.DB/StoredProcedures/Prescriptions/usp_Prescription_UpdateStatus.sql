@@ -1,4 +1,10 @@
-CREATE OR ALTER PROCEDURE dbo.usp_Prescription_UpdateStatus @Id uniqueidentifier, @Status nvarchar(30) AS
-BEGIN
-    UPDATE dbo.Prescriptions SET Status = @Status WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_Prescription_UpdateStatus(uuid, varchar(30))
+RETURNS integer
+LANGUAGE sql
+VOLATILE
+AS $function$
+    WITH updated AS (
+        UPDATE public.Prescriptions SET Status = $2 WHERE Id = $1 RETURNING 1
+    )
+    SELECT count(*)::integer FROM updated;
+$function$;

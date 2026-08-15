@@ -1,10 +1,9 @@
+using System.Reflection;
 using DbUp;
 using DbUp.Engine;
 using DbUp.Support;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using System.Reflection;
 
 namespace Gilead.Infrastructure.Data;
 
@@ -14,44 +13,17 @@ public static class DatabaseMigrationRunner
 
     public static void Migrate(IConfiguration configuration)
     {
-        string _connectionString = "";
+        var connectionString = PostgresConnectionString.Resolve(configuration);
+        EnsureDatabase.For.PostgresqlDatabase(connectionString);
 
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                        ?? configuration.GetConnectionString("GileadDb");
-
-        if (connectionString != null && connectionString.StartsWith("postgres://"))
-        {
-            var databaseUri = new Uri(connectionString);
-            var userInfo = databaseUri.UserInfo.Split(':');
-
-            var builder = new NpgsqlConnectionStringBuilder
-            {
-                Host = databaseUri.Host,
-                Port = databaseUri.Port,
-                Username = userInfo[0],
-                Password = userInfo.Length > 1 ? userInfo[1] : "",
-                Database = databaseUri.LocalPath.TrimStart('/'),
-                SslMode = SslMode.Require,
-                TrustServerCertificate = true // Required for Render's managed certificates
-            };
-
-            _connectionString = builder.ToString();
-        }
-        else
-        {
-            _connectionString = connectionString;
-        }
-
-        EnsureDatabase.For.SqlDatabase(_connectionString);
-
-        using var lockConnection = new SqlConnection(_connectionString);
+        using var lockConnection = new NpgsqlConnection(connectionString);
         lockConnection.Open();
         AcquireMigrationLock(lockConnection);
 
         try
         {
             var assembly = typeof(DatabaseMigrationRunner).Assembly;
-            var runOnceUpgrader = CreateRunOnceUpgrader(_connectionString, assembly);
+            var runOnceUpgrader = CreateRunOnceUpgrader(connectionString, assembly);
             var result = ShouldBaselineExistingSchema(lockConnection)
                 ? runOnceUpgrader.MarkAsExecuted()
                 : runOnceUpgrader.PerformUpgrade();
@@ -61,10 +33,10 @@ public static class DatabaseMigrationRunner
                 throw new InvalidOperationException("Database migration failed.", result.Error);
             }
 
-            var repeatableResult = CreateRepeatableProcedureUpgrader(_connectionString, assembly).PerformUpgrade();
+            var repeatableResult = CreateRepeatableFunctionUpgrader(connectionString, assembly).PerformUpgrade();
             if (!repeatableResult.Successful)
             {
-                throw new InvalidOperationException("Database procedure migration failed.", repeatableResult.Error);
+                throw new InvalidOperationException("Database function migration failed.", repeatableResult.Error);
             }
         }
         finally
@@ -75,21 +47,23 @@ public static class DatabaseMigrationRunner
 
     private static UpgradeEngine CreateRunOnceUpgrader(string connectionString, Assembly assembly) =>
         DeployChanges.To
-            .SqlDatabase(connectionString)
+            .PostgresqlDatabase(connectionString)
+            .WithVariablesDisabled()
             .WithScriptsEmbeddedInAssembly(
                 assembly,
                 scriptName => scriptName.Contains(ScriptRoot, StringComparison.Ordinal)
-                    && !IsStoredProcedureScript(scriptName))
+                    && !IsFunctionScript(scriptName))
             .WithScriptSorter(SortScripts)
             .LogToConsole()
             .Build();
 
-    private static UpgradeEngine CreateRepeatableProcedureUpgrader(string connectionString, Assembly assembly) =>
+    private static UpgradeEngine CreateRepeatableFunctionUpgrader(string connectionString, Assembly assembly) =>
         DeployChanges.To
-            .SqlDatabase(connectionString)
+            .PostgresqlDatabase(connectionString)
+            .WithVariablesDisabled()
             .WithScriptsEmbeddedInAssembly(
                 assembly,
-                IsStoredProcedureScript,
+                IsFunctionScript,
                 new SqlScriptOptions
                 {
                     ScriptType = ScriptType.RunAlways,
@@ -111,63 +85,37 @@ public static class DatabaseMigrationRunner
             return 0;
         }
 
-        if (scriptName.Contains("._002_TVPs.", StringComparison.Ordinal))
+        if (scriptName.Contains("._003_StoredProcedures.", StringComparison.Ordinal))
         {
             return 1;
         }
 
-        if (scriptName.Contains("._003_StoredProcedures.", StringComparison.Ordinal))
-        {
-            return 2;
-        }
-
-        return 3;
+        return 2;
     }
 
-    private static bool IsStoredProcedureScript(string scriptName) =>
+    private static bool IsFunctionScript(string scriptName) =>
         scriptName.Contains(".Gilead.DB._003_StoredProcedures.", StringComparison.Ordinal);
 
-    private static void AcquireMigrationLock(SqlConnection connection)
+    private static void AcquireMigrationLock(NpgsqlConnection connection)
     {
         using var command = connection.CreateCommand();
-        command.CommandText = """
-            DECLARE @Result int;
-            EXEC @Result = sp_getapplock
-                @Resource = 'Gilead.DatabaseMigration',
-                @LockMode = 'Exclusive',
-                @LockOwner = 'Session',
-                @LockTimeout = 60000;
-            SELECT @Result;
-            """;
-
-        var result = (int)command.ExecuteScalar()!;
-        if (result < 0)
-        {
-            throw new InvalidOperationException($"Could not acquire database migration lock. sp_getapplock returned {result}.");
-        }
-    }
-
-    private static void ReleaseMigrationLock(SqlConnection connection)
-    {
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            EXEC sp_releaseapplock
-                @Resource = 'Gilead.DatabaseMigration',
-                @LockOwner = 'Session';
-            """;
+        command.CommandText = "SELECT pg_advisory_lock(hashtextextended('Gilead.DatabaseMigration', 0));";
         command.ExecuteNonQuery();
     }
 
-    private static bool ShouldBaselineExistingSchema(SqlConnection connection)
+    private static void ReleaseMigrationLock(NpgsqlConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT pg_advisory_unlock(hashtextextended('Gilead.DatabaseMigration', 0));";
+        command.ExecuteNonQuery();
+    }
+
+    private static bool ShouldBaselineExistingSchema(NpgsqlConnection connection)
     {
         using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT CASE
-                WHEN OBJECT_ID(N'dbo.Patients', N'U') IS NOT NULL
-                    AND OBJECT_ID(N'dbo.SchemaVersions', N'U') IS NULL
-                THEN CAST(1 AS bit)
-                ELSE CAST(0 AS bit)
-            END;
+            SELECT to_regclass('public.patients') IS NOT NULL
+                AND to_regclass('public.schemaversions') IS NULL;
             """;
 
         return (bool)command.ExecuteScalar()!;

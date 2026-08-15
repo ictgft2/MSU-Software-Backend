@@ -1,8 +1,11 @@
-CREATE OR ALTER PROCEDURE dbo.usp_Patient_Insert
-    @Id uniqueidentifier, @FullName nvarchar(200), @Age int, @Sex nvarchar(1), @Phone nvarchar(40), @Address nvarchar(500),
-    @NextOfKinName nvarchar(200), @NextOfKinPhone nvarchar(40), @NextOfKinRelationship nvarchar(100), @CreatedAt datetimeoffset
-AS
-BEGIN
-    INSERT dbo.Patients VALUES (@Id, @FullName, @Age, @Sex, @Phone, @Address, @NextOfKinName, @NextOfKinPhone, @NextOfKinRelationship, @CreatedAt);
-    SELECT * FROM dbo.Patients WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_Patient_Insert(
+    uuid, varchar(200), integer, varchar(1), varchar(40), varchar(500), varchar(200), varchar(40), varchar(100), timestamptz)
+RETURNS SETOF public.Patients
+LANGUAGE sql
+VOLATILE
+AS $function$
+    INSERT INTO public.Patients (
+        Id, FullName, Age, Sex, Phone, Address, NextOfKinName, NextOfKinPhone, NextOfKinRelationship, CreatedAt)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING *;
+$function$;

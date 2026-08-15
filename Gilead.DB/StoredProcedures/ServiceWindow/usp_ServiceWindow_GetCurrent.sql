@@ -1,4 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.usp_ServiceWindow_GetCurrent @Date date AS
-BEGIN
-    SELECT * FROM dbo.ServiceTimeWindows WHERE [Date] = @Date;
-END
+CREATE OR REPLACE FUNCTION public.usp_ServiceWindow_GetCurrent(date)
+RETURNS SETOF public.ServiceTimeWindows
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT * FROM public.ServiceTimeWindows WHERE Date = $1;
+$function$;

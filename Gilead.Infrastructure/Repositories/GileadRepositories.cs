@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.Json;
 using Dapper;
 using Gilead.Application.DTOs;
 using Gilead.Application.Interfaces;
@@ -14,71 +15,108 @@ internal static class Db
     {
         var parameters = new DynamicParameters();
         foreach (var (name, value) in values)
+        {
             parameters.Add(name, value);
+        }
+
         return parameters;
     }
+
+    public static string Function(string name, params string[] parameterNames) =>
+        $"SELECT * FROM public.{name}({string.Join(", ", parameterNames.Select(name => $"@{name}"))});";
+
+    public static CommandDefinition Command(
+        string sql,
+        object? parameters,
+        CancellationToken cancellationToken,
+        IDbTransaction? transaction = null) =>
+        new(sql, parameters, transaction, cancellationToken: cancellationToken);
 
     public static string? S<T>(T? value) where T : struct, Enum => value?.ToString();
     public static DateTime? D(DateOnly? value) => value?.ToDateTime(TimeOnly.MinValue);
     public static TimeSpan T(TimeOnly value) => value.ToTimeSpan();
 }
 
-public sealed class PatientRepository(SqlConnectionFactory factory) : IPatientRepository
+public sealed class PatientRepository(PostgresConnectionFactory factory) : IPatientRepository
 {
     public async Task<Patient> InsertAsync(Patient patient, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleAsync<Patient>("usp_Patient_Insert", patient, commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Patient_Insert", "Id", "FullName", "Age", "Sex", "Phone", "Address", "NextOfKinName", "NextOfKinPhone", "NextOfKinRelationship", "CreatedAt");
+        return await connection.QuerySingleAsync<Patient>(Db.Command(sql, patient, cancellationToken));
     }
 
     public async Task<Patient?> GetByIdAsync(Guid patientId, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<Patient>("usp_Patient_GetById", Db.Params(("PatientId", patientId)), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Patient_GetById", "PatientId");
+        return await connection.QuerySingleOrDefaultAsync<Patient>(Db.Command(sql, Db.Params(("PatientId", patientId)), cancellationToken));
     }
 
     public async Task<IReadOnlyList<Patient>> SearchAsync(string? name, string? phone, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        var rows = await connection.QueryAsync<Patient>("usp_Patient_Search", Db.Params(("Name", name), ("Phone", phone)), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Patient_Search", "Name", "Phone");
+        var rows = await connection.QueryAsync<Patient>(Db.Command(sql, Db.Params(("Name", name), ("Phone", phone)), cancellationToken));
         return rows.ToArray();
     }
 }
 
-public sealed class EncounterRepository(SqlConnectionFactory factory) : IEncounterRepository
+public sealed class EncounterRepository(PostgresConnectionFactory factory) : IEncounterRepository
 {
     public async Task<Encounter> InsertAsync(Encounter encounter, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleAsync<Encounter>("usp_Encounter_Insert", ToParameters(encounter), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Encounter_Insert", "Id", "PatientId", "AdmissionType", "Status", "ArrivalMode", "ChiefComplaint", "RegisteredBy", "AdmittedAt", "DischargedAt", "CreatedAt", "UpdatedAt");
+        return await connection.QuerySingleAsync<Encounter>(Db.Command(sql, ToParameters(encounter), cancellationToken));
     }
 
     public async Task<Encounter?> GetByIdAsync(Guid encounterId, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<Encounter>("usp_Encounter_GetById", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Encounter_GetById", "EncounterId");
+        return await connection.QuerySingleOrDefaultAsync<Encounter>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
     }
 
     public async Task<IReadOnlyList<Encounter>> GetListAsync(EncounterStatus? status, DateOnly? date, AdmissionType? type, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        var rows = await connection.QueryAsync<Encounter>("usp_Encounter_GetList", Db.Params(("Status", Db.S(status)), ("Date", Db.D(date)), ("AdmissionType", Db.S(type))), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Encounter_GetList", "Status", "Date", "AdmissionType");
+        var parameters = Db.Params(("Status", Db.S(status)), ("Date", Db.D(date)), ("AdmissionType", Db.S(type)));
+        var rows = await connection.QueryAsync<Encounter>(Db.Command(sql, parameters, cancellationToken));
         return rows.ToArray();
     }
 
     public async Task UpdateStatusAsync(Guid encounterId, EncounterStatus status, DateTimeOffset? dischargedAt, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        await connection.ExecuteAsync("usp_Encounter_UpdateStatus", Db.Params(("EncounterId", encounterId), ("Status", status.ToString()), ("DischargedAt", dischargedAt)), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Encounter_UpdateStatus", "EncounterId", "Status", "DischargedAt");
+        var parameters = Db.Params(("EncounterId", encounterId), ("Status", status.ToString()), ("DischargedAt", dischargedAt));
+        await connection.ExecuteAsync(Db.Command(sql, parameters, cancellationToken));
     }
 
     public async Task<EncounterDetail?> GetDetailAsync(Guid encounterId, CancellationToken cancellationToken)
     {
+        const string sql = """
+            SELECT * FROM public.Encounters WHERE Id = @EncounterId;
+            SELECT p.* FROM public.Patients p JOIN public.Encounters e ON e.PatientId = p.Id WHERE e.Id = @EncounterId;
+            SELECT * FROM public.VitalSigns WHERE EncounterId = @EncounterId ORDER BY RecordedAt DESC;
+            SELECT * FROM public.ConsultationNotes WHERE EncounterId = @EncounterId;
+            SELECT * FROM public.Prescriptions WHERE EncounterId = @EncounterId;
+            SELECT * FROM public.LabRequests WHERE EncounterId = @EncounterId;
+            SELECT r.* FROM public.LabResults r JOIN public.LabRequests q ON q.Id = r.LabRequestId WHERE q.EncounterId = @EncounterId;
+            SELECT * FROM public.DressingOrders WHERE EncounterId = @EncounterId;
+            SELECT * FROM public.ContactTraces WHERE EncounterId = @EncounterId;
+            """;
+
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        using var multi = await connection.QueryMultipleAsync("usp_Encounter_GetById", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure);
+        using var multi = await connection.QueryMultipleAsync(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
         var encounter = await multi.ReadSingleOrDefaultAsync<Encounter>();
         if (encounter is null)
+        {
             return null;
+        }
+
         var patient = await multi.ReadSingleOrDefaultAsync<Patient>();
         var vitals = (await multi.ReadAsync<VitalSigns>()).ToArray();
         var consultation = await multi.ReadSingleOrDefaultAsync<ConsultationNote>();
@@ -104,33 +142,38 @@ public sealed class EncounterRepository(SqlConnectionFactory factory) : IEncount
         ("UpdatedAt", encounter.UpdatedAt));
 }
 
-public sealed class VitalsRepository(SqlConnectionFactory factory) : IVitalsRepository
+public sealed class VitalsRepository(PostgresConnectionFactory factory) : IVitalsRepository
 {
     public async Task<VitalSigns> InsertAsync(VitalSigns vitalSigns, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleAsync<VitalSigns>("usp_VitalSigns_Insert", vitalSigns, commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_VitalSigns_Insert", "Id", "EncounterId", "RecordedBy", "BloodPressureSystolic", "BloodPressureDiastolic", "PulseRate", "Temperature", "Spo2", "RespiratoryRate", "Weight", "Notes", "RecordedAt");
+        return await connection.QuerySingleAsync<VitalSigns>(Db.Command(sql, vitalSigns, cancellationToken));
     }
 
     public async Task<IReadOnlyList<VitalSigns>> GetByEncounterAsync(Guid encounterId, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return (await connection.QueryAsync<VitalSigns>("usp_VitalSigns_GetByEncounter", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure)).ToArray();
+        var sql = Db.Function("usp_VitalSigns_GetByEncounter", "EncounterId");
+        var rows = await connection.QueryAsync<VitalSigns>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
+        return rows.ToArray();
     }
 
     public async Task<VitalSigns?> GetLatestAsync(Guid encounterId, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<VitalSigns>("usp_VitalSigns_GetLatest", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_VitalSigns_GetLatest", "EncounterId");
+        return await connection.QuerySingleOrDefaultAsync<VitalSigns>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
     }
 }
 
-public sealed class ConsultationRepository(SqlConnectionFactory factory) : IConsultationRepository
+public sealed class ConsultationRepository(PostgresConnectionFactory factory) : IConsultationRepository
 {
     public async Task<ConsultationNote?> GetByEncounterAsync(Guid encounterId, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        return await connection.QuerySingleOrDefaultAsync<ConsultationNote>("usp_Consultation_GetByEncounter", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure);
+        var sql = Db.Function("usp_Consultation_GetByEncounter", "EncounterId");
+        return await connection.QuerySingleOrDefaultAsync<ConsultationNote>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
     }
 
     public async Task CreateWithChildrenAsync(ConsultationNote note, IReadOnlyList<Prescription> prescriptions, IReadOnlyList<LabRequest> labRequests, DressingOrder? dressingOrder, EncounterStatus nextStatus, CancellationToken cancellationToken)
@@ -139,14 +182,36 @@ public sealed class ConsultationRepository(SqlConnectionFactory factory) : ICons
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         try
         {
-            await connection.ExecuteAsync("usp_Consultation_Insert", note, transaction, commandType: CommandType.StoredProcedure);
+            var consultationSql = Db.Function("usp_Consultation_Insert", "Id", "EncounterId", "DoctorId", "Diagnosis", "ClinicalNotes", "RequiresLab", "RequiresDressing", "IsReferral", "ReferralFacility", "ReferralReason", "ConsultedAt");
+            await connection.ExecuteAsync(Db.Command(consultationSql, note, cancellationToken, transaction));
+
             if (prescriptions.Count > 0)
-                await connection.ExecuteAsync("usp_Prescription_InsertBulk", Bulk("Prescriptions", PrescriptionTable(prescriptions), "dbo.PrescriptionTvp"), transaction, commandType: CommandType.StoredProcedure);
+            {
+                const string prescriptionSql = "SELECT public.usp_Prescription_InsertBulk(CAST(@Prescriptions AS jsonb));";
+                var parameters = Db.Params(("Prescriptions", PrescriptionJson(prescriptions)));
+                await connection.ExecuteAsync(Db.Command(prescriptionSql, parameters, cancellationToken, transaction));
+            }
+
             if (labRequests.Count > 0)
-                await connection.ExecuteAsync("usp_LabRequest_InsertBulk", Bulk("LabRequests", LabRequestTable(labRequests), "dbo.LabRequestTvp"), transaction, commandType: CommandType.StoredProcedure);
+            {
+                const string labRequestSql = "SELECT public.usp_LabRequest_InsertBulk(CAST(@LabRequests AS jsonb));";
+                var parameters = Db.Params(("LabRequests", LabRequestJson(labRequests)));
+                await connection.ExecuteAsync(Db.Command(labRequestSql, parameters, cancellationToken, transaction));
+            }
+
             if (dressingOrder is not null)
-                await connection.ExecuteAsync("usp_DressingOrder_Insert", dressingOrder, transaction, commandType: CommandType.StoredProcedure);
-            await connection.ExecuteAsync("usp_Encounter_UpdateStatus", Db.Params(("EncounterId", note.EncounterId), ("Status", nextStatus.ToString()), ("DischargedAt", nextStatus == EncounterStatus.Referred ? DateTimeOffset.UtcNow : null)), transaction, commandType: CommandType.StoredProcedure);
+            {
+                var dressingSql = Db.Function("usp_DressingOrder_Insert", "Id", "ConsultationNoteId", "EncounterId", "Instructions", "Status", "PerformedBy", "ProcedureNotes", "CompletedAt", "CreatedAt");
+                var parameters = DressingParameters(dressingOrder);
+                await connection.ExecuteAsync(Db.Command(dressingSql, parameters, cancellationToken, transaction));
+            }
+
+            var encounterSql = Db.Function("usp_Encounter_UpdateStatus", "EncounterId", "Status", "DischargedAt");
+            var encounterParameters = Db.Params(
+                ("EncounterId", note.EncounterId),
+                ("Status", nextStatus.ToString()),
+                ("DischargedAt", nextStatus == EncounterStatus.Referred ? DateTimeOffset.UtcNow : null));
+            await connection.ExecuteAsync(Db.Command(encounterSql, encounterParameters, cancellationToken, transaction));
             await transaction.CommitAsync(cancellationToken);
         }
         catch
@@ -156,103 +221,251 @@ public sealed class ConsultationRepository(SqlConnectionFactory factory) : ICons
         }
     }
 
-    private static DynamicParameters Bulk(string parameterName, DataTable table, string typeName)
+    private static string PrescriptionJson(IEnumerable<Prescription> rows) =>
+        JsonSerializer.Serialize(rows.Select(row => new
+        {
+            row.Id,
+            row.ConsultationNoteId,
+            row.EncounterId,
+            row.DrugName,
+            row.Dosage,
+            row.Frequency,
+            row.Duration,
+            Route = row.Route.ToString(),
+            row.Instructions,
+            Status = row.Status.ToString(),
+            IssuedAt = row.IssuedAt.ToUniversalTime()
+        }));
+
+    private static string LabRequestJson(IEnumerable<LabRequest> rows) =>
+        JsonSerializer.Serialize(rows.Select(row => new
+        {
+            row.Id,
+            row.ConsultationNoteId,
+            row.EncounterId,
+            row.TestName,
+            row.ClinicalIndication,
+            Status = row.Status.ToString(),
+            RequestedAt = row.RequestedAt.ToUniversalTime()
+        }));
+
+    private static DynamicParameters DressingParameters(DressingOrder order) => Db.Params(
+        ("Id", order.Id),
+        ("ConsultationNoteId", order.ConsultationNoteId),
+        ("EncounterId", order.EncounterId),
+        ("Instructions", order.Instructions),
+        ("Status", order.Status.ToString()),
+        ("PerformedBy", order.PerformedBy),
+        ("ProcedureNotes", order.ProcedureNotes),
+        ("CompletedAt", order.CompletedAt),
+        ("CreatedAt", order.CreatedAt));
+}
+
+public sealed class PrescriptionRepository(PostgresConnectionFactory factory) : IPrescriptionRepository
+{
+    public async Task<Prescription?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var parameters = new DynamicParameters();
-        parameters.Add(parameterName, table.AsTableValuedParameter(typeName));
-        return parameters;
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Prescription_GetById", "Id");
+        return await connection.QuerySingleOrDefaultAsync<Prescription>(Db.Command(sql, Db.Params(("Id", id)), cancellationToken));
     }
 
-    private static DataTable PrescriptionTable(IEnumerable<Prescription> rows)
+    public async Task<IReadOnlyList<Prescription>> GetWorklistAsync(PrescriptionStatus? status, DateOnly? date, CancellationToken cancellationToken)
     {
-        var table = new DataTable();
-        table.Columns.Add("Id", typeof(Guid));
-        table.Columns.Add("ConsultationNoteId", typeof(Guid));
-        table.Columns.Add("EncounterId", typeof(Guid));
-        table.Columns.Add("DrugName", typeof(string));
-        table.Columns.Add("Dosage", typeof(string));
-        table.Columns.Add("Frequency", typeof(string));
-        table.Columns.Add("Duration", typeof(string));
-        table.Columns.Add("Route", typeof(string));
-        table.Columns.Add("Instructions", typeof(string));
-        table.Columns.Add("Status", typeof(string));
-        table.Columns.Add("IssuedAt", typeof(DateTimeOffset));
-
-        foreach (var r in rows)
-            table.Rows.Add(r.Id, r.ConsultationNoteId, r.EncounterId, r.DrugName, r.Dosage, r.Frequency, r.Duration, r.Route.ToString(), r.Instructions ?? (object)DBNull.Value, r.Status.ToString(), r.IssuedAt);
-        return table;
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Prescription_GetWorklist", "Status", "Date");
+        var rows = await connection.QueryAsync<Prescription>(Db.Command(sql, Db.Params(("Status", Db.S(status)), ("Date", Db.D(date))), cancellationToken));
+        return rows.ToArray();
     }
 
-    private static DataTable LabRequestTable(IEnumerable<LabRequest> rows)
+    public async Task UpdateStatusAsync(Guid id, PrescriptionStatus status, CancellationToken cancellationToken)
     {
-        var table = new DataTable();
-        table.Columns.Add("Id", typeof(Guid));
-        table.Columns.Add("ConsultationNoteId", typeof(Guid));
-        table.Columns.Add("EncounterId", typeof(Guid));
-        table.Columns.Add("TestName", typeof(string));
-        table.Columns.Add("ClinicalIndication", typeof(string));
-        table.Columns.Add("Status", typeof(string));
-        table.Columns.Add("RequestedAt", typeof(DateTimeOffset));
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Prescription_UpdateStatus", "Id", "Status");
+        await connection.ExecuteAsync(Db.Command(sql, Db.Params(("Id", id), ("Status", status.ToString())), cancellationToken));
+    }
 
-        foreach (var r in rows)
-            table.Rows.Add(r.Id, r.ConsultationNoteId, r.EncounterId, r.TestName, r.ClinicalIndication, r.Status.ToString(), r.RequestedAt);
-        return table;
+    public async Task<bool> AllHandedOverForEncounterAsync(Guid encounterId, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Prescription_AllHandedOverForEncounter", "EncounterId");
+        return await connection.QuerySingleAsync<bool>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
     }
 }
 
-public sealed class PrescriptionRepository(SqlConnectionFactory factory) : IPrescriptionRepository
+public sealed class DispensingRepository(PostgresConnectionFactory factory) : IDispensingRepository
 {
-    public async Task<Prescription?> GetByIdAsync(Guid id, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<Prescription>("usp_Prescription_GetById", Db.Params(("Id", id)), commandType: CommandType.StoredProcedure); }
-    public async Task<IReadOnlyList<Prescription>> GetWorklistAsync(PrescriptionStatus? status, DateOnly? date, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<Prescription>("usp_Prescription_GetWorklist", Db.Params(("Status", Db.S(status)), ("Date", Db.D(date))), commandType: CommandType.StoredProcedure)).ToArray(); }
-    public async Task UpdateStatusAsync(Guid id, PrescriptionStatus status, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); await c.ExecuteAsync("usp_Prescription_UpdateStatus", Db.Params(("Id", id), ("Status", status.ToString())), commandType: CommandType.StoredProcedure); }
-    public async Task<bool> AllHandedOverForEncounterAsync(Guid encounterId, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<bool>("usp_Prescription_AllHandedOverForEncounter", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure); }
+    public async Task<Dispensing> InsertAsync(Dispensing dispensing, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Dispensing_Insert", "Id", "PrescriptionId", "PharmacistId", "DrugName", "QuantityDispensed", "BatchNumber", "ExpiryDate", "Notes", "DispensedAt");
+        return await connection.QuerySingleAsync<Dispensing>(Db.Command(sql, dispensing, cancellationToken));
+    }
+
+    public async Task<Dispensing?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Dispensing_GetById", "Id");
+        return await connection.QuerySingleOrDefaultAsync<Dispensing>(Db.Command(sql, Db.Params(("Id", id)), cancellationToken));
+    }
 }
 
-public sealed class DispensingRepository(SqlConnectionFactory factory) : IDispensingRepository
+public sealed class DrugHandoverRepository(PostgresConnectionFactory factory) : IDrugHandoverRepository
 {
-    public async Task<Dispensing> InsertAsync(Dispensing dispensing, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<Dispensing>("usp_Dispensing_Insert", dispensing, commandType: CommandType.StoredProcedure); }
-    public async Task<Dispensing?> GetByIdAsync(Guid id, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<Dispensing>("usp_Dispensing_GetById", Db.Params(("Id", id)), commandType: CommandType.StoredProcedure); }
+    public async Task<DrugHandover> InsertAsync(DrugHandover handover, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DrugHandover_Insert", "Id", "DispensingId", "EncounterId", "ProtocolOfficerId", "PatientNameVerified", "DrugListVerified", "DosageCounsellingDone", "DurationCounsellingDone", "CounsellingNotes", "HandoverAt");
+        return await connection.QuerySingleAsync<DrugHandover>(Db.Command(sql, handover, cancellationToken));
+    }
+
+    public async Task<IReadOnlyList<DrugHandover>> GetWorklistAsync(string? status, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DrugHandover_GetWorklist", "Status");
+        var rows = await connection.QueryAsync<DrugHandover>(Db.Command(sql, Db.Params(("Status", status)), cancellationToken));
+        return rows.ToArray();
+    }
+
+    public async Task<DrugHandover?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DrugHandover_GetById", "Id");
+        return await connection.QuerySingleOrDefaultAsync<DrugHandover>(Db.Command(sql, Db.Params(("Id", id)), cancellationToken));
+    }
+
+    public async Task ConfirmAsync(DrugHandover handover, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DrugHandover_Confirm", "Id", "DispensingId", "EncounterId", "ProtocolOfficerId", "PatientNameVerified", "DrugListVerified", "DosageCounsellingDone", "DurationCounsellingDone", "CounsellingNotes", "HandoverAt");
+        await connection.ExecuteAsync(Db.Command(sql, handover, cancellationToken));
+    }
 }
 
-public sealed class DrugHandoverRepository(SqlConnectionFactory factory) : IDrugHandoverRepository
+public sealed class LabRepository(PostgresConnectionFactory factory) : ILabRepository
 {
-    public async Task<DrugHandover> InsertAsync(DrugHandover handover, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<DrugHandover>("usp_DrugHandover_Insert", handover, commandType: CommandType.StoredProcedure); }
-    public async Task<IReadOnlyList<DrugHandover>> GetWorklistAsync(string? status, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<DrugHandover>("usp_DrugHandover_GetWorklist", Db.Params(("Status", status)), commandType: CommandType.StoredProcedure)).ToArray(); }
-    public async Task<DrugHandover?> GetByIdAsync(Guid id, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<DrugHandover>("usp_DrugHandover_GetById", Db.Params(("Id", id)), commandType: CommandType.StoredProcedure); }
-    public async Task ConfirmAsync(DrugHandover handover, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); await c.ExecuteAsync("usp_DrugHandover_Confirm", handover, commandType: CommandType.StoredProcedure); }
+    public async Task<IReadOnlyList<LabRequest>> GetRequestsAsync(LabRequestStatus? status, DateOnly? date, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_LabRequest_GetWorklist", "Status", "Date");
+        var rows = await connection.QueryAsync<LabRequest>(Db.Command(sql, Db.Params(("Status", Db.S(status)), ("Date", Db.D(date))), cancellationToken));
+        return rows.ToArray();
+    }
+
+    public async Task<LabRequest?> GetRequestAsync(Guid requestId, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_LabRequest_GetById", "RequestId");
+        return await connection.QuerySingleOrDefaultAsync<LabRequest>(Db.Command(sql, Db.Params(("RequestId", requestId)), cancellationToken));
+    }
+
+    public async Task<LabResult> InsertResultAsync(LabResult result, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_LabResult_Insert", "Id", "LabRequestId", "ScientistId", "TestName", "Findings", "Conclusion", "Values", "CompletedAt");
+        return await connection.QuerySingleAsync<LabResult>(Db.Command(sql, result, cancellationToken));
+    }
+
+    public async Task<IReadOnlyList<LabResult>> GetResultsByEncounterAsync(Guid encounterId, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_LabResult_GetByEncounter", "EncounterId");
+        var rows = await connection.QueryAsync<LabResult>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
+        return rows.ToArray();
+    }
 }
 
-public sealed class LabRepository(SqlConnectionFactory factory) : ILabRepository
+public sealed class DressingRepository(PostgresConnectionFactory factory) : IDressingRepository
 {
-    public async Task<IReadOnlyList<LabRequest>> GetRequestsAsync(LabRequestStatus? status, DateOnly? date, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<LabRequest>("usp_LabRequest_GetWorklist", Db.Params(("Status", Db.S(status)), ("Date", Db.D(date))), commandType: CommandType.StoredProcedure)).ToArray(); }
-    public async Task<LabRequest?> GetRequestAsync(Guid requestId, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<LabRequest>("usp_LabRequest_GetById", Db.Params(("RequestId", requestId)), commandType: CommandType.StoredProcedure); }
-    public async Task<LabResult> InsertResultAsync(LabResult result, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<LabResult>("usp_LabResult_Insert", result, commandType: CommandType.StoredProcedure); }
-    public async Task<IReadOnlyList<LabResult>> GetResultsByEncounterAsync(Guid encounterId, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<LabResult>("usp_LabResult_GetByEncounter", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure)).ToArray(); }
+    public async Task<IReadOnlyList<DressingOrder>> GetWorklistAsync(DressingOrderStatus? status, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DressingOrder_GetWorklist", "Status");
+        var rows = await connection.QueryAsync<DressingOrder>(Db.Command(sql, Db.Params(("Status", Db.S(status))), cancellationToken));
+        return rows.ToArray();
+    }
+
+    public async Task<DressingOrder?> GetByIdAsync(Guid orderId, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DressingOrder_GetById", "OrderId");
+        return await connection.QuerySingleOrDefaultAsync<DressingOrder>(Db.Command(sql, Db.Params(("OrderId", orderId)), cancellationToken));
+    }
+
+    public async Task CompleteAsync(Guid orderId, Guid performedBy, string? procedureNotes, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_DressingOrder_Complete", "OrderId", "PerformedBy", "ProcedureNotes");
+        var parameters = Db.Params(("OrderId", orderId), ("PerformedBy", performedBy), ("ProcedureNotes", procedureNotes));
+        await connection.ExecuteAsync(Db.Command(sql, parameters, cancellationToken));
+    }
 }
 
-public sealed class DressingRepository(SqlConnectionFactory factory) : IDressingRepository
+public sealed class ContactTraceRepository(PostgresConnectionFactory factory) : IContactTraceRepository
 {
-    public async Task<IReadOnlyList<DressingOrder>> GetWorklistAsync(DressingOrderStatus? status, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<DressingOrder>("usp_DressingOrder_GetWorklist", Db.Params(("Status", Db.S(status))), commandType: CommandType.StoredProcedure)).ToArray(); }
-    public async Task<DressingOrder?> GetByIdAsync(Guid orderId, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<DressingOrder>("usp_DressingOrder_GetById", Db.Params(("OrderId", orderId)), commandType: CommandType.StoredProcedure); }
-    public async Task CompleteAsync(Guid orderId, Guid performedBy, string? procedureNotes, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); await c.ExecuteAsync("usp_DressingOrder_Complete", Db.Params(("OrderId", orderId), ("PerformedBy", performedBy), ("ProcedureNotes", procedureNotes)), commandType: CommandType.StoredProcedure); }
+    public async Task<ContactTrace> InsertAsync(ContactTrace contactTrace, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_ContactTrace_Insert", "Id", "EncounterId", "RecordedBy", "NextOfKinName", "NextOfKinPhone", "NextOfKinRelationship", "ResidentialAddress", "WorkplaceAddress", "DischargeNotes", "ReferralDestination", "RecordedAt");
+        return await connection.QuerySingleAsync<ContactTrace>(Db.Command(sql, contactTrace, cancellationToken));
+    }
+
+    public async Task<ContactTrace?> GetByEncounterAsync(Guid encounterId, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_ContactTrace_GetByEncounter", "EncounterId");
+        return await connection.QuerySingleOrDefaultAsync<ContactTrace>(Db.Command(sql, Db.Params(("EncounterId", encounterId)), cancellationToken));
+    }
+
+    public async Task<ContactTrace> UpdateAsync(ContactTrace contactTrace, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_ContactTrace_Update", "Id", "EncounterId", "RecordedBy", "NextOfKinName", "NextOfKinPhone", "NextOfKinRelationship", "ResidentialAddress", "WorkplaceAddress", "DischargeNotes", "ReferralDestination", "RecordedAt");
+        return await connection.QuerySingleAsync<ContactTrace>(Db.Command(sql, contactTrace, cancellationToken));
+    }
 }
 
-public sealed class ContactTraceRepository(SqlConnectionFactory factory) : IContactTraceRepository
+public sealed class RegisterRepository(PostgresConnectionFactory factory) : IRegisterRepository
 {
-    public async Task<ContactTrace> InsertAsync(ContactTrace contactTrace, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<ContactTrace>("usp_ContactTrace_Insert", contactTrace, commandType: CommandType.StoredProcedure); }
-    public async Task<ContactTrace?> GetByEncounterAsync(Guid encounterId, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<ContactTrace>("usp_ContactTrace_GetByEncounter", Db.Params(("EncounterId", encounterId)), commandType: CommandType.StoredProcedure); }
-    public async Task<ContactTrace> UpdateAsync(ContactTrace contactTrace, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<ContactTrace>("usp_ContactTrace_Update", contactTrace, commandType: CommandType.StoredProcedure); }
+    public async Task<IReadOnlyList<DrugRegisterEntry>> GetDrugsAsync(DateOnly? date, int page, int limit, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Register_GetDrugs", "Date", "Page", "Limit");
+        var rows = await connection.QueryAsync<DrugRegisterEntry>(Db.Command(sql, Db.Params(("Date", Db.D(date)), ("Page", page), ("Limit", limit)), cancellationToken));
+        return rows.ToArray();
+    }
+
+    public async Task<IReadOnlyList<DrugRegisterEntry>> ExportDrugsAsync(DateOnly? date, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Register_ExportDrugs", "Date");
+        var rows = await connection.QueryAsync<DrugRegisterEntry>(Db.Command(sql, Db.Params(("Date", Db.D(date))), cancellationToken));
+        return rows.ToArray();
+    }
 }
 
-public sealed class RegisterRepository(SqlConnectionFactory factory) : IRegisterRepository
+public sealed class ServiceWindowRepository(PostgresConnectionFactory factory) : IServiceWindowRepository
 {
-    public async Task<IReadOnlyList<DrugRegisterEntry>> GetDrugsAsync(DateOnly? date, int page, int limit, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<DrugRegisterEntry>("usp_Register_GetDrugs", Db.Params(("Date", Db.D(date)), ("Page", page), ("Limit", limit)), commandType: CommandType.StoredProcedure)).ToArray(); }
-    public async Task<IReadOnlyList<DrugRegisterEntry>> ExportDrugsAsync(DateOnly? date, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return (await c.QueryAsync<DrugRegisterEntry>("usp_Register_ExportDrugs", Db.Params(("Date", Db.D(date))), commandType: CommandType.StoredProcedure)).ToArray(); }
-}
+    public async Task<ServiceTimeWindow> InsertAsync(ServiceTimeWindow window, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_ServiceWindow_Insert", "Id", "Date", "ColdCaseOpenTime", "ColdCaseCloseTime", "CreatedBy", "CreatedAt");
+        var parameters = Db.Params(("Id", window.Id), ("Date", window.Date.ToDateTime(TimeOnly.MinValue)), ("ColdCaseOpenTime", Db.T(window.ColdCaseOpenTime)), ("ColdCaseCloseTime", Db.T(window.ColdCaseCloseTime)), ("CreatedBy", window.CreatedBy), ("CreatedAt", window.CreatedAt));
+        return await connection.QuerySingleAsync<ServiceTimeWindow>(Db.Command(sql, parameters, cancellationToken));
+    }
 
-public sealed class ServiceWindowRepository(SqlConnectionFactory factory) : IServiceWindowRepository
-{
-    public async Task<ServiceTimeWindow> InsertAsync(ServiceTimeWindow window, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<ServiceTimeWindow>("usp_ServiceWindow_Insert", Db.Params(("Id", window.Id), ("Date", window.Date.ToDateTime(TimeOnly.MinValue)), ("ColdCaseOpenTime", Db.T(window.ColdCaseOpenTime)), ("ColdCaseCloseTime", Db.T(window.ColdCaseCloseTime)), ("CreatedBy", window.CreatedBy), ("CreatedAt", window.CreatedAt)), commandType: CommandType.StoredProcedure); }
-    public async Task<ServiceTimeWindow?> GetCurrentAsync(DateOnly date, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleOrDefaultAsync<ServiceTimeWindow>("usp_ServiceWindow_GetCurrent", Db.Params(("Date", date.ToDateTime(TimeOnly.MinValue))), commandType: CommandType.StoredProcedure); }
-    public async Task<ServiceTimeWindow> UpdateAsync(Guid windowId, TimeOnly openTime, TimeOnly closeTime, CancellationToken cancellationToken) { await using var c = await factory.CreateOpenConnectionAsync(cancellationToken); return await c.QuerySingleAsync<ServiceTimeWindow>("usp_ServiceWindow_Update", Db.Params(("WindowId", windowId), ("ColdCaseOpenTime", Db.T(openTime)), ("ColdCaseCloseTime", Db.T(closeTime))), commandType: CommandType.StoredProcedure); }
+    public async Task<ServiceTimeWindow?> GetCurrentAsync(DateOnly date, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_ServiceWindow_GetCurrent", "Date");
+        return await connection.QuerySingleOrDefaultAsync<ServiceTimeWindow>(Db.Command(sql, Db.Params(("Date", date.ToDateTime(TimeOnly.MinValue))), cancellationToken));
+    }
+
+    public async Task<ServiceTimeWindow> UpdateAsync(Guid windowId, TimeOnly openTime, TimeOnly closeTime, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_ServiceWindow_Update", "WindowId", "ColdCaseOpenTime", "ColdCaseCloseTime");
+        var parameters = Db.Params(("WindowId", windowId), ("ColdCaseOpenTime", Db.T(openTime)), ("ColdCaseCloseTime", Db.T(closeTime)));
+        return await connection.QuerySingleAsync<ServiceTimeWindow>(Db.Command(sql, parameters, cancellationToken));
+    }
 }

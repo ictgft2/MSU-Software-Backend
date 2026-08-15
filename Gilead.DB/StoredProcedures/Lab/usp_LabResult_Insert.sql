@@ -1,9 +1,22 @@
-CREATE OR ALTER PROCEDURE dbo.usp_LabResult_Insert
-    @Id uniqueidentifier, @LabRequestId uniqueidentifier, @ScientistId uniqueidentifier, @TestName nvarchar(200),
-    @Findings nvarchar(max), @Conclusion nvarchar(max), @Values nvarchar(max), @CompletedAt datetimeoffset
-AS
-BEGIN
-    INSERT dbo.LabResults VALUES (@Id, @LabRequestId, @ScientistId, @TestName, @Findings, @Conclusion, @Values, @CompletedAt);
-    UPDATE dbo.LabRequests SET Status = 'Completed' WHERE Id = @LabRequestId;
-    SELECT * FROM dbo.LabResults WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_LabResult_Insert(
+    uuid, uuid, uuid, varchar(200), text, text, text, timestamptz)
+RETURNS SETOF public.LabResults
+LANGUAGE sql
+VOLATILE
+AS $function$
+    WITH inserted AS (
+        INSERT INTO public.LabResults (
+            Id, LabRequestId, ScientistId, TestName, Findings, Conclusion, "values", CompletedAt)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING *
+    ), updated AS (
+        UPDATE public.LabRequests request
+        SET Status = 'Completed'
+        FROM inserted
+        WHERE request.Id = inserted.LabRequestId
+        RETURNING request.Id
+    )
+    SELECT inserted.*
+    FROM inserted
+    CROSS JOIN (SELECT count(*) FROM updated) AS update_result;
+$function$;

@@ -1,4 +1,11 @@
-CREATE OR ALTER PROCEDURE dbo.usp_LabResult_GetByEncounter @EncounterId uniqueidentifier AS
-BEGIN
-    SELECT r.* FROM dbo.LabResults r JOIN dbo.LabRequests q ON q.Id = r.LabRequestId WHERE q.EncounterId = @EncounterId ORDER BY r.CompletedAt DESC;
-END
+CREATE OR REPLACE FUNCTION public.usp_LabResult_GetByEncounter(uuid)
+RETURNS SETOF public.LabResults
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT result.*
+    FROM public.LabResults result
+    JOIN public.LabRequests request ON request.Id = result.LabRequestId
+    WHERE request.EncounterId = $1
+    ORDER BY result.CompletedAt DESC;
+$function$;

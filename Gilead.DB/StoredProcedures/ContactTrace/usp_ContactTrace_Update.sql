@@ -1,12 +1,19 @@
-CREATE OR ALTER PROCEDURE dbo.usp_ContactTrace_Update
-    @Id uniqueidentifier, @EncounterId uniqueidentifier, @RecordedBy uniqueidentifier, @NextOfKinName nvarchar(200),
-    @NextOfKinPhone nvarchar(40), @NextOfKinRelationship nvarchar(100), @ResidentialAddress nvarchar(500),
-    @WorkplaceAddress nvarchar(500), @DischargeNotes nvarchar(max), @ReferralDestination nvarchar(250) = NULL, @RecordedAt datetimeoffset
-AS
-BEGIN
-    UPDATE dbo.ContactTraces SET RecordedBy = @RecordedBy, NextOfKinName = @NextOfKinName, NextOfKinPhone = @NextOfKinPhone,
-        NextOfKinRelationship = @NextOfKinRelationship, ResidentialAddress = @ResidentialAddress, WorkplaceAddress = @WorkplaceAddress,
-        DischargeNotes = @DischargeNotes, ReferralDestination = @ReferralDestination, RecordedAt = @RecordedAt
-    WHERE Id = @Id AND EncounterId = @EncounterId;
-    SELECT * FROM dbo.ContactTraces WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_ContactTrace_Update(
+    uuid, uuid, uuid, varchar(200), varchar(40), varchar(100), varchar(500), varchar(500), text, varchar(250), timestamptz)
+RETURNS SETOF public.ContactTraces
+LANGUAGE sql
+VOLATILE
+AS $function$
+    UPDATE public.ContactTraces
+    SET RecordedBy = $3,
+        NextOfKinName = $4,
+        NextOfKinPhone = $5,
+        NextOfKinRelationship = $6,
+        ResidentialAddress = $7,
+        WorkplaceAddress = $8,
+        DischargeNotes = $9,
+        ReferralDestination = $10,
+        RecordedAt = $11
+    WHERE Id = $1 AND EncounterId = $2
+    RETURNING *;
+$function$;

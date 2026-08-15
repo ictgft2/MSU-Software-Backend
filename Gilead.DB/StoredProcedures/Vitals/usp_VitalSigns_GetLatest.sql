@@ -1,4 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.usp_VitalSigns_GetLatest @EncounterId uniqueidentifier AS
-BEGIN
-    SELECT TOP 1 * FROM dbo.VitalSigns WHERE EncounterId = @EncounterId ORDER BY RecordedAt DESC;
-END
+CREATE OR REPLACE FUNCTION public.usp_VitalSigns_GetLatest(uuid)
+RETURNS SETOF public.VitalSigns
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT * FROM public.VitalSigns WHERE EncounterId = $1 ORDER BY RecordedAt DESC LIMIT 1;
+$function$;

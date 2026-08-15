@@ -1,7 +1,9 @@
-CREATE OR ALTER PROCEDURE dbo.usp_ServiceWindow_Insert
-    @Id uniqueidentifier, @Date date, @ColdCaseOpenTime time, @ColdCaseCloseTime time, @CreatedBy uniqueidentifier, @CreatedAt datetimeoffset
-AS
-BEGIN
-    INSERT dbo.ServiceTimeWindows VALUES (@Id, @Date, @ColdCaseOpenTime, @ColdCaseCloseTime, @CreatedBy, @CreatedAt);
-    SELECT * FROM dbo.ServiceTimeWindows WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_ServiceWindow_Insert(uuid, date, time, time, uuid, timestamptz)
+RETURNS SETOF public.ServiceTimeWindows
+LANGUAGE sql
+VOLATILE
+AS $function$
+    INSERT INTO public.ServiceTimeWindows (Id, Date, ColdCaseOpenTime, ColdCaseCloseTime, CreatedBy, CreatedAt)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *;
+$function$;

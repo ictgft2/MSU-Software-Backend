@@ -1,4 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.usp_DrugHandover_GetById @Id uniqueidentifier AS
-BEGIN
-    SELECT * FROM dbo.DrugHandovers WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_DrugHandover_GetById(uuid)
+RETURNS SETOF public.DrugHandovers
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT * FROM public.DrugHandovers WHERE Id = $1;
+$function$;
