@@ -1,0 +1,298 @@
+{
+  "info": {
+    "_postman_id": "22222222-3333-4444-5555-666666666666",
+    "name": "Gilead API - Seeded Test Data",
+    "description": "Current api/v1 requests for the Gilead backend. Import with the Gilead Local Seeded environment after running Gilead.DB/Seed/TestData.sql.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Seeded Lookups",
+      "item": [
+        {
+          "name": "GET seeded queued patient",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/patients/{{coldQueuedPatientId}}" },
+          "response": []
+        },
+        {
+          "name": "GET search patients by name",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/patients/search?name=Amina" },
+          "response": []
+        },
+        {
+          "name": "GET queued cold-case encounter detail",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/encounters/{{coldQueuedEncounterId}}" },
+          "response": []
+        },
+        {
+          "name": "GET discharged encounter detail",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/encounters/{{dischargedEncounterId}}" },
+          "response": []
+        },
+        {
+          "name": "GET encounters by status",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/encounters?status=PharmacyPending" },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patients And Encounters",
+      "item": [
+        {
+          "name": "POST register patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.id) pm.environment.set('newPatientId', body.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Test Patient\",\n  \"age\": 44,\n  \"sex\": \"F\",\n  \"phone\": \"08039990001\",\n  \"address\": \"Postman Street, Local Test\",\n  \"nextOfKinName\": \"Postman Kin\",\n  \"nextOfKinPhone\": \"08039990002\",\n  \"nextOfKinRelationship\": \"Sibling\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/patients"
+          },
+          "response": []
+        },
+        {
+          "name": "POST open cold-case encounter for new patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.data && body.data.id) pm.environment.set('newEncounterId', body.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{newPatientId}}\",\n  \"admissionType\": \"ColdCase\",\n  \"arrivalMode\": \"WalkedIn\",\n  \"chiefComplaint\": \"Postman-created outpatient review.\",\n  \"registeredBy\": \"{{registrarId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/encounters"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH move seeded queued encounter to consultation",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"InConsultation\"\n}" },
+            "url": "{{baseUrl}}/api/v1/encounters/{{coldQueuedEncounterId}}/status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vitals",
+      "item": [
+        {
+          "name": "GET latest vitals for seeded encounter",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/encounters/{{coldQueuedEncounterId}}/vitals/latest" },
+          "response": []
+        },
+        {
+          "name": "POST vitals for new encounter",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recordedBy\": \"{{nurseId}}\",\n  \"bloodPressureSystolic\": 136,\n  \"bloodPressureDiastolic\": 84,\n  \"pulseRate\": 82,\n  \"temperature\": 36.8,\n  \"spo2\": 98,\n  \"respiratoryRate\": 18,\n  \"weight\": 72.5,\n  \"notes\": \"Recorded from Postman.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/encounters/{{newEncounterId}}/vitals"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Consultation",
+      "item": [
+        {
+          "name": "GET seeded pharmacy consultation",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/encounters/{{pharmacyEncounterId}}/consultation" },
+          "response": []
+        },
+        {
+          "name": "POST consultation for new encounter",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"diagnosis\": [\"Upper respiratory tract infection\"],\n  \"clinicalNotes\": \"Mild symptoms. Treat symptomatically and counsel patient.\",\n  \"treatmentPlan\": {\n    \"prescriptions\": [\n      {\n        \"drugName\": \"Paracetamol\",\n        \"dosage\": \"500 mg\",\n        \"frequency\": \"Three times daily\",\n        \"duration\": \"3 days\",\n        \"route\": \"Oral\",\n        \"instructions\": \"Take after meals.\"\n      }\n    ],\n    \"labTests\": [],\n    \"requiresDressing\": false,\n    \"dressingInstructions\": null,\n    \"isReferral\": false,\n    \"referralFacility\": null,\n    \"referralReason\": null\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/encounters/{{newEncounterId}}/consultation"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pharmacy And Protocol",
+      "item": [
+        {
+          "name": "GET pending prescriptions",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/pharmacy/prescriptions?status=Pending" },
+          "response": []
+        },
+        {
+          "name": "GET seeded pending prescription",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/pharmacy/prescriptions/{{pharmacyPrescriptionId}}" },
+          "response": []
+        },
+        {
+          "name": "POST dispense seeded pending prescription",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pharmacistId\": \"{{pharmacistId}}\",\n  \"quantityDispensed\": 6,\n  \"batchNumber\": \"POSTMAN-AL-001\",\n  \"expiryDate\": \"2027-12-31\",\n  \"notes\": \"Dispensed from Postman.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/pharmacy/prescriptions/{{pharmacyPrescriptionId}}/dispense"
+          },
+          "response": []
+        },
+        {
+          "name": "GET pending handovers",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/protocol/handovers?status=Pending" },
+          "response": []
+        },
+        {
+          "name": "POST confirm seeded handover",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"protocolOfficerId\": \"{{protocolOfficerId}}\",\n  \"patientNameVerified\": true,\n  \"drugListVerified\": true,\n  \"dosageCounsellingDone\": true,\n  \"durationCounsellingDone\": true,\n  \"counsellingNotes\": \"Confirmed from Postman.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/protocol/handovers/{{handoverId}}/confirm"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lab And Dressing",
+      "item": [
+        {
+          "name": "GET pending lab requests",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/lab/requests?status=Pending" },
+          "response": []
+        },
+        {
+          "name": "POST result for seeded lab request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scientistId\": \"{{scientistId}}\",\n  \"testName\": \"Full Blood Count\",\n  \"findings\": \"Hemoglobin is mildly reduced.\",\n  \"values\": [\n    {\n      \"parameter\": \"Hemoglobin\",\n      \"value\": \"10.8\",\n      \"unit\": \"g/dL\",\n      \"referenceRange\": \"12.0-15.5\"\n    }\n  ],\n  \"conclusion\": \"Mild anemia; correlate clinically.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/lab/requests/{{labRequestId}}/results"
+          },
+          "response": []
+        },
+        {
+          "name": "GET pending dressing orders",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/dressing/orders?status=Pending" },
+          "response": []
+        },
+        {
+          "name": "PATCH complete seeded dressing order",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"performedBy\": \"{{dressingNurseId}}\",\n  \"procedureNotes\": \"Cleaned and dressed from Postman.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/dressing/orders/{{dressingOrderId}}/complete"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact Trace And Register",
+      "item": [
+        {
+          "name": "GET discharged contact trace",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/encounters/{{dischargedEncounterId}}/contact-trace" },
+          "response": []
+        },
+        {
+          "name": "GET drug register",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/register/drugs?page=1&limit=50" },
+          "response": []
+        },
+        {
+          "name": "GET drug register CSV export",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/register/drugs/export?format=csv" },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Service Window And Queue",
+      "item": [
+        {
+          "name": "GET current service window",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/service-window/current" },
+          "response": []
+        },
+        {
+          "name": "GET queue",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/queue" },
+          "response": []
+        },
+        {
+          "name": "POST join seeded queued encounter to Redis queue",
+          "request": { "method": "POST", "header": [], "url": "{{baseUrl}}/api/v1/queue/{{coldQueuedEncounterId}}/join" },
+          "response": []
+        },
+        {
+          "name": "GET seeded queued encounter position",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/queue/{{coldQueuedEncounterId}}/position" },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": []
+}
