@@ -1,4 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.usp_ContactTrace_GetByEncounter @EncounterId uniqueidentifier AS
-BEGIN
-    SELECT * FROM dbo.ContactTraces WHERE EncounterId = @EncounterId;
-END
+CREATE OR REPLACE FUNCTION public.usp_ContactTrace_GetByEncounter(uuid)
+RETURNS SETOF public.ContactTraces
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT * FROM public.ContactTraces WHERE EncounterId = $1;
+$function$;

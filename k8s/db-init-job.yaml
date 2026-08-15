@@ -9,21 +9,30 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: db-init
-          image: mcr.microsoft.com/mssql-tools
+          image: postgres:16-alpine
           env:
-            - name: MSSQL_SA_PASSWORD
+            - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
                   name: gilead-secrets
-                  key: MSSQL_SA_PASSWORD
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gilead-secrets
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gilead-secrets
+                  key: POSTGRES_PASSWORD
           command:
-            - /bin/bash
+            - /bin/sh
             - -c
             - |
-              set -euo pipefail
-              echo "Waiting for SQL Server..."
-              until /opt/mssql-tools/bin/sqlcmd -S gilead-sqlserver,1433 -U sa -P "$MSSQL_SA_PASSWORD" -Q "SELECT 1" -b >/dev/null 2>&1; do
+              set -eu
+              echo "Waiting for PostgreSQL..."
+              until pg_isready -h gilead-postgres -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
                 sleep 5
               done
-
-              /opt/mssql-tools/bin/sqlcmd -S gilead-sqlserver,1433 -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF DB_ID('GileadDb') IS NULL CREATE DATABASE GileadDb;" -b
+              psql -h gilead-postgres -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT 1;"

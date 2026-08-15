@@ -6,8 +6,8 @@
 - `Gilead.Application/`: DTOs, service interfaces, service implementations, and `ServiceResult`.
 - `Gilead.Domain/`: domain entities and enums only.
 - `Gilead.Infrastructure/`: Dapper repositories, SQL connection factory, Redis queue cache, and dependency registration.
-- `Gilead.DB/`: SQL Server table, TVP, and stored procedure scripts. Keep database changes here with clear names.
-- `k8s/`: Kubernetes resources for API, SQL Server, Redis, and database initialization.
+- `Gilead.DB/`: PostgreSQL table, function, and seed scripts. Keep database changes here with clear names.
+- `k8s/`: Kubernetes resources for API, PostgreSQL, Redis, and database initialization.
 
 ## Build, Test, and Development Commands
 
@@ -17,13 +17,13 @@
 - `docker build -t gilead-api:latest .`: build the API container image.
 - `kubectl apply -k k8s`: deploy the Kubernetes bundle after updating secrets and image names.
 
-Local dependencies are SQL Server and Redis. Configure `ConnectionStrings__GileadDb`, `Redis__ConnectionString`, and `Redis__InstanceName` for container or Kubernetes runs.
+Local dependencies are PostgreSQL and Redis. Configure `ConnectionStrings__GileadDb`, `Redis__ConnectionString`, and `Redis__InstanceName` for container or Kubernetes runs.
 
 ## Coding Style & Naming Conventions
 
 Use standard C# conventions: four-space indentation, PascalCase for public types and members, camelCase for locals and parameters, and async methods ending in `Async`. Nullable reference types and implicit usings are enabled, so keep null handling explicit.
 
-Follow the existing layering: controllers call application services, services depend on repository interfaces, and infrastructure implements Dapper access. Prefer stored procedures over inline SQL and keep procedure names in the current `usp_Area_Action` style.
+Follow the existing layering: controllers call application services, services depend on repository interfaces, and infrastructure implements Dapper access. Prefer PostgreSQL functions over inline SQL and keep routine names in the current `usp_Area_Action` style.
 
 ## Testing Guidelines
 
@@ -37,4 +37,4 @@ Pull requests should include a brief summary, affected API/database areas, confi
 
 ## Security & Configuration Tips
 
-Do not commit real SQL Server passwords, Redis endpoints, or production connection strings. Use environment variables for deployment overrides and keep `k8s/secrets.yaml` placeholders sanitized before sharing changes.
+Do not commit real PostgreSQL passwords, Redis endpoints, or production connection strings. Use environment variables for deployment overrides and keep `k8s/secrets.yaml` placeholders sanitized before sharing changes.

@@ -1,7 +1,11 @@
-CREATE OR ALTER PROCEDURE dbo.usp_Register_GetDrugs @Date date = NULL, @Page int = 1, @Limit int = 50 AS
-BEGIN
-    SELECT * FROM dbo.vw_DrugRegister
-    WHERE (@Date IS NULL OR CAST(HandoverAt AS date) = @Date)
+CREATE OR REPLACE FUNCTION public.usp_Register_GetDrugs(date, integer, integer)
+RETURNS SETOF public.vw_DrugRegister
+LANGUAGE sql
+STABLE
+AS $function$
+    SELECT *
+    FROM public.vw_DrugRegister
+    WHERE $1 IS NULL OR (HandoverAt AT TIME ZONE 'UTC')::date = $1
     ORDER BY HandoverAt DESC
-    OFFSET (@Page - 1) * @Limit ROWS FETCH NEXT @Limit ROWS ONLY;
-END
+    LIMIT $3 OFFSET (($2 - 1) * $3);
+$function$;

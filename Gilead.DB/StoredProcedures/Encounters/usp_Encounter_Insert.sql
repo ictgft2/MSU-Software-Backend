@@ -1,9 +1,12 @@
-CREATE OR ALTER PROCEDURE dbo.usp_Encounter_Insert
-    @Id uniqueidentifier, @PatientId uniqueidentifier, @AdmissionType nvarchar(30), @Status nvarchar(40), @ArrivalMode nvarchar(30),
-    @ChiefComplaint nvarchar(1000), @RegisteredBy uniqueidentifier, @AdmittedAt datetimeoffset, @DischargedAt datetimeoffset = NULL,
-    @CreatedAt datetimeoffset, @UpdatedAt datetimeoffset
-AS
-BEGIN
-    INSERT dbo.Encounters VALUES (@Id, @PatientId, @AdmissionType, @Status, @ArrivalMode, @ChiefComplaint, @RegisteredBy, @AdmittedAt, @DischargedAt, @CreatedAt, @UpdatedAt);
-    SELECT * FROM dbo.Encounters WHERE Id = @Id;
-END
+CREATE OR REPLACE FUNCTION public.usp_Encounter_Insert(
+    uuid, uuid, varchar(30), varchar(40), varchar(30), varchar(1000), uuid, timestamptz, timestamptz, timestamptz, timestamptz)
+RETURNS SETOF public.Encounters
+LANGUAGE sql
+VOLATILE
+AS $function$
+    INSERT INTO public.Encounters (
+        Id, PatientId, AdmissionType, Status, ArrivalMode, ChiefComplaint, RegisteredBy,
+        AdmittedAt, DischargedAt, CreatedAt, UpdatedAt)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING *;
+$function$;
