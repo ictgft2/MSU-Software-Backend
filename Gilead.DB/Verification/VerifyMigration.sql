@@ -90,7 +90,7 @@ BEGIN
     PERFORM public.usp_DrugHandover_Confirm(handover_id, dispensing_id, encounter_id, staff_id, true, true, true, true, 'Verified', source_time);
     PERFORM public.usp_LabResult_Insert(result_id, lab_request_id, staff_id, 'Verification Test', 'Normal', 'Verified', '[]', source_time);
     PERFORM public.usp_ContactTrace_Insert(trace_id, encounter_id, staff_id, 'Test Kin', '08000000001', 'Sibling', 'Home', 'Work', 'Verified', NULL, source_time);
-    PERFORM public.usp_ContactTrace_Update(trace_id, encounter_id, staff_id, 'Updated Kin', '08000000001', 'Sibling', 'Home', 'Work', 'Verified', NULL, source_time);
+    PERFORM public.usp_ContactTrace_Update(trace_id, encounter_id, staff_id, staff_id, 'Updated Kin', '08000000001', 'Sibling', 'Home', 'Work', 'Verified', NULL, source_time);
     PERFORM public.usp_ServiceWindow_Insert(window_id, '2099-01-01', '08:00', '17:00', staff_id, source_time);
     PERFORM public.usp_ServiceWindow_Update(window_id, '09:00', '18:00');
     PERFORM public.usp_Prescription_UpdateStatus(prescription_id, 'HandedOver');

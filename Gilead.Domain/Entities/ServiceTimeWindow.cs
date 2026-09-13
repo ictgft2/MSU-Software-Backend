@@ -7,5 +7,5 @@ public sealed class ServiceTimeWindow
     public TimeOnly ColdCaseOpenTime { get; set; }
     public TimeOnly ColdCaseCloseTime { get; set; }
     public Guid CreatedBy { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

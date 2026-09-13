@@ -37,6 +37,51 @@ internal static class Db
     public static TimeSpan T(TimeOnly value) => value.ToTimeSpan();
 }
 
+public sealed class StaffRepository(PostgresConnectionFactory factory) : IStaffRepository
+{
+    public async Task<Staff> InsertAsync(Staff staff, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Staff_Insert", "Id", "FullName", "Email", "Role", "IsActive", "CreatedAt");
+        return await connection.QuerySingleAsync<Staff>(Db.Command(sql, Db.Params(
+            ("Id", staff.Id),
+            ("FullName", staff.FullName),
+            ("Email", staff.Email),
+            ("Role", staff.Role.ToString()),
+            ("IsActive", staff.IsActive),
+            ("CreatedAt", staff.CreatedAt)), cancellationToken));
+    }
+
+    public async Task<Staff?> GetByIdAsync(Guid staffId, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Staff_GetById", "StaffId");
+        return await connection.QuerySingleOrDefaultAsync<Staff>(Db.Command(sql, Db.Params(("StaffId", staffId)), cancellationToken));
+    }
+
+    public async Task<IReadOnlyList<Staff>> GetListAsync(StaffRole? role, bool? isActive, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Staff_GetList", "Role", "IsActive");
+        var rows = await connection.QueryAsync<Staff>(Db.Command(sql, Db.Params(
+            ("Role", role?.ToString()),
+            ("IsActive", isActive)), cancellationToken));
+        return rows.ToArray();
+    }
+
+    public async Task<Staff?> UpdateAsync(Staff staff, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Staff_Update", "Id", "FullName", "Email", "Role", "IsActive");
+        return await connection.QuerySingleOrDefaultAsync<Staff>(Db.Command(sql, Db.Params(
+            ("Id", staff.Id),
+            ("FullName", staff.FullName),
+            ("Email", staff.Email),
+            ("Role", staff.Role.ToString()),
+            ("IsActive", staff.IsActive)), cancellationToken));
+    }
+}
+
 public sealed class PatientRepository(PostgresConnectionFactory factory) : IPatientRepository
 {
     public async Task<Patient> InsertAsync(Patient patient, CancellationToken cancellationToken)
@@ -450,7 +495,7 @@ public sealed class ServiceWindowRepository(PostgresConnectionFactory factory) :
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
         var sql = Db.Function("usp_ServiceWindow_Insert", "Id", "Date", "ColdCaseOpenTime", "ColdCaseCloseTime", "CreatedBy", "CreatedAt");
-        var parameters = Db.Params(("Id", window.Id), ("Date", window.Date.ToDateTime(TimeOnly.MinValue)), ("ColdCaseOpenTime", Db.T(window.ColdCaseOpenTime)), ("ColdCaseCloseTime", Db.T(window.ColdCaseCloseTime)), ("CreatedBy", window.CreatedBy), ("CreatedAt", window.CreatedAt));
+        var parameters = Db.Params(("Id", window.Id), ("Date", window.Date), ("ColdCaseOpenTime", window.ColdCaseOpenTime), ("ColdCaseCloseTime", window.ColdCaseCloseTime), ("CreatedBy", window.CreatedBy), ("CreatedAt", window.CreatedAt));
         return await connection.QuerySingleAsync<ServiceTimeWindow>(Db.Command(sql, parameters, cancellationToken));
     }
 
@@ -458,14 +503,14 @@ public sealed class ServiceWindowRepository(PostgresConnectionFactory factory) :
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
         var sql = Db.Function("usp_ServiceWindow_GetCurrent", "Date");
-        return await connection.QuerySingleOrDefaultAsync<ServiceTimeWindow>(Db.Command(sql, Db.Params(("Date", date.ToDateTime(TimeOnly.MinValue))), cancellationToken));
+        return await connection.QuerySingleOrDefaultAsync<ServiceTimeWindow>(Db.Command(sql, Db.Params(("Date", date)), cancellationToken));
     }
 
     public async Task<ServiceTimeWindow> UpdateAsync(Guid windowId, TimeOnly openTime, TimeOnly closeTime, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
         var sql = Db.Function("usp_ServiceWindow_Update", "WindowId", "ColdCaseOpenTime", "ColdCaseCloseTime");
-        var parameters = Db.Params(("WindowId", windowId), ("ColdCaseOpenTime", Db.T(openTime)), ("ColdCaseCloseTime", Db.T(closeTime)));
+        var parameters = Db.Params(("WindowId", windowId), ("ColdCaseOpenTime", openTime), ("ColdCaseCloseTime", closeTime));
         return await connection.QuerySingleAsync<ServiceTimeWindow>(Db.Command(sql, parameters, cancellationToken));
     }
 }

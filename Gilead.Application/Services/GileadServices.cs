@@ -12,6 +12,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddGileadServices(this IServiceCollection services)
     {
+        services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<IPatientService, PatientService>();
         services.AddScoped<IEncounterService, EncounterService>();
         services.AddScoped<IQueueService, QueueService>();
@@ -25,6 +26,52 @@ public static class DependencyInjection
         services.AddScoped<IRegisterService, RegisterService>();
         services.AddScoped<IServiceWindowService, ServiceWindowService>();
         return services;
+    }
+}
+
+internal sealed class StaffService(IStaffRepository staff) : IStaffService
+{
+    public async Task<ServiceResult<Staff>> CreateAsync(CreateStaffRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email))
+            return ServiceResult<Staff>.Fail("Staff name and email are required.");
+
+        var created = await staff.InsertAsync(new Staff
+        {
+            Id = Guid.NewGuid(),
+            FullName = request.FullName.Trim(),
+            Email = request.Email.Trim(),
+            Role = request.Role,
+            IsActive = true,
+            CreatedAt = DateTimeOffset.UtcNow
+        }, cancellationToken);
+        return ServiceResult<Staff>.Ok(created, 201);
+    }
+
+    public async Task<ServiceResult<Staff>> GetByIdAsync(Guid staffId, CancellationToken cancellationToken) =>
+        (await staff.GetByIdAsync(staffId, cancellationToken)) is { } member
+            ? ServiceResult<Staff>.Ok(member)
+            : ServiceResult<Staff>.Fail("Staff member not found.", 404);
+
+    public async Task<ServiceResult<IReadOnlyList<Staff>>> GetListAsync(StaffRole? role, bool? isActive, CancellationToken cancellationToken) =>
+        ServiceResult<IReadOnlyList<Staff>>.Ok(await staff.GetListAsync(role, isActive, cancellationToken));
+
+    public async Task<ServiceResult<Staff>> UpdateAsync(Guid staffId, UpdateStaffRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email))
+            return ServiceResult<Staff>.Fail("Staff name and email are required.");
+
+        var updated = await staff.UpdateAsync(new Staff
+        {
+            Id = staffId,
+            FullName = request.FullName.Trim(),
+            Email = request.Email.Trim(),
+            Role = request.Role,
+            IsActive = request.IsActive
+        }, cancellationToken);
+        return updated is null
+            ? ServiceResult<Staff>.Fail("Staff member not found.", 404)
+            : ServiceResult<Staff>.Ok(updated);
     }
 }
 

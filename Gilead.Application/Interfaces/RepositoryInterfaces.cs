@@ -4,6 +4,14 @@ using Gilead.Domain.Enums;
 
 namespace Gilead.Application.Interfaces;
 
+public interface IStaffRepository
+{
+    Task<Staff> InsertAsync(Staff staff, CancellationToken cancellationToken);
+    Task<Staff?> GetByIdAsync(Guid staffId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Staff>> GetListAsync(StaffRole? role, bool? isActive, CancellationToken cancellationToken);
+    Task<Staff?> UpdateAsync(Staff staff, CancellationToken cancellationToken);
+}
+
 public interface IPatientRepository
 {
     Task<Patient> InsertAsync(Patient patient, CancellationToken cancellationToken);

@@ -204,6 +204,17 @@ Emergency encounters skip cold-case service-window validation and never enter th
 
 ## Endpoint Catalog
 
+### Staff
+
+```http
+POST  /api/v1/staff
+GET   /api/v1/staff?role=&isActive=
+GET   /api/v1/staff/{staffId}
+PATCH /api/v1/staff/{staffId}
+```
+
+Supported roles are `Doctor`, `Pharmacist`, `Nurse`, `Scientist`, `ProtocolOfficer`, `Registrar`, and `DressingNurse`.
+
 ### Patients
 
 ```http

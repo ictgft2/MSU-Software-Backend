@@ -4,6 +4,8 @@ using Gilead.Domain.Enums;
 namespace Gilead.Application.DTOs;
 
 public sealed record RegisterPatientRequest(string FullName, int Age, string Sex, string Phone, string Address, string NextOfKinName, string NextOfKinPhone, string NextOfKinRelationship);
+public sealed record CreateStaffRequest(string FullName, string Email, StaffRole Role);
+public sealed record UpdateStaffRequest(string FullName, string Email, StaffRole Role, bool IsActive);
 public sealed record OpenEncounterRequest(Guid PatientId, AdmissionType AdmissionType, ArrivalMode ArrivalMode, string ChiefComplaint, Guid RegisteredBy);
 public sealed record AdvanceEncounterStatusRequest(EncounterStatus Status);
 public sealed record RecordVitalsRequest(Guid RecordedBy, int? BloodPressureSystolic, int? BloodPressureDiastolic, int? PulseRate, decimal? Temperature, int? Spo2, int? RespiratoryRate, decimal? Weight, string? Notes);

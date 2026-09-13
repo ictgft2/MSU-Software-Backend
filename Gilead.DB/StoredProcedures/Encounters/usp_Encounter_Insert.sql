@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION public.usp_Encounter_Insert(
-    uuid, uuid, varchar(30), varchar(40), varchar(30), varchar(1000), uuid, timestamptz, timestamptz, timestamptz, timestamptz)
+    uuid, uuid, varchar(30), varchar(40), varchar(30), varchar(1000), uuid,
+    timestamptz, timestamptz, timestamptz, timestamptz)
 RETURNS SETOF public.Encounters
 LANGUAGE sql
 VOLATILE

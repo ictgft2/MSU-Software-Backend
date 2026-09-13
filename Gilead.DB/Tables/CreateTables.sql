@@ -1,3 +1,17 @@
+CREATE TABLE public.Staff (
+    Id uuid NOT NULL,
+    FullName varchar(200) NOT NULL,
+    Email varchar(320) NOT NULL,
+    Role varchar(30) NOT NULL,
+    IsActive boolean NOT NULL,
+    CreatedAt timestamptz NOT NULL,
+    CONSTRAINT pk_staff PRIMARY KEY (Id),
+    CONSTRAINT uq_staff_email UNIQUE (Email),
+    CONSTRAINT ck_staff_role CHECK (Role IN ('Doctor', 'Pharmacist', 'Nurse', 'Scientist', 'ProtocolOfficer', 'Registrar', 'DressingNurse'))
+);
+
+CREATE INDEX ix_staff_role_active ON public.Staff (Role, IsActive);
+
 CREATE TABLE public.Patients (
     Id uuid NOT NULL,
     FullName varchar(200) NOT NULL,
@@ -25,7 +39,8 @@ CREATE TABLE public.Encounters (
     CreatedAt timestamptz NOT NULL,
     UpdatedAt timestamptz NOT NULL,
     CONSTRAINT pk_encounters PRIMARY KEY (Id),
-    CONSTRAINT fk_encounters_patients FOREIGN KEY (PatientId) REFERENCES public.Patients (Id)
+    CONSTRAINT fk_encounters_patients FOREIGN KEY (PatientId) REFERENCES public.Patients (Id),
+    CONSTRAINT fk_encounters_registered_by FOREIGN KEY (RegisteredBy) REFERENCES public.Staff (Id)
 );
 
 CREATE TABLE public.VitalSigns (
@@ -42,7 +57,8 @@ CREATE TABLE public.VitalSigns (
     Notes varchar(1000) NULL,
     RecordedAt timestamptz NOT NULL,
     CONSTRAINT pk_vitalsigns PRIMARY KEY (Id),
-    CONSTRAINT fk_vitalsigns_encounters FOREIGN KEY (EncounterId) REFERENCES public.Encounters (Id)
+    CONSTRAINT fk_vitalsigns_encounters FOREIGN KEY (EncounterId) REFERENCES public.Encounters (Id),
+    CONSTRAINT fk_vitalsigns_recorded_by FOREIGN KEY (RecordedBy) REFERENCES public.Staff (Id)
 );
 
 CREATE TABLE public.ConsultationNotes (
@@ -163,7 +179,8 @@ CREATE TABLE public.ContactTraces (
     RecordedAt timestamptz NOT NULL,
     CONSTRAINT pk_contacttraces PRIMARY KEY (Id),
     CONSTRAINT uq_contacttraces_encounter UNIQUE (EncounterId),
-    CONSTRAINT fk_contacttraces_encounters FOREIGN KEY (EncounterId) REFERENCES public.Encounters (Id)
+    CONSTRAINT fk_contacttraces_encounters FOREIGN KEY (EncounterId) REFERENCES public.Encounters (Id),
+    CONSTRAINT fk_contacttraces_recorded_by FOREIGN KEY (RecordedBy) REFERENCES public.Staff (Id)
 );
 
 CREATE TABLE public.ServiceTimeWindows (
@@ -174,7 +191,8 @@ CREATE TABLE public.ServiceTimeWindows (
     CreatedBy uuid NOT NULL,
     CreatedAt timestamptz NOT NULL,
     CONSTRAINT pk_servicetimewindows PRIMARY KEY (Id),
-    CONSTRAINT uq_servicetimewindows_date UNIQUE (Date)
+    CONSTRAINT uq_servicetimewindows_date UNIQUE (Date),
+    CONSTRAINT fk_servicetimewindows_created_by FOREIGN KEY (CreatedBy) REFERENCES public.Staff (Id)
 );
 
 CREATE INDEX ix_encounters_patientid ON public.Encounters (PatientId);
