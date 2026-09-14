@@ -1,8 +1,9 @@
-using System.Text.Json.Serialization;
 using Gilead.API.Middleware;
 using Gilead.Application.Services;
 using Gilead.Infrastructure;
 using Gilead.Infrastructure.Data;
+using StackExchange.Redis;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 const string AllowAnyCorsPolicy = "AllowAnyCorsPolicy";
@@ -53,5 +54,32 @@ app.MapGet("/health", async (PostgresConnectionFactory connectionFactory, Cancel
         return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Database unavailable");
     }
 });
+app.MapGet("/health/redis", async (
+    IConnectionMultiplexer redis,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var database = redis.GetDatabase();
+
+        var latency = await database.PingAsync();
+
+        return Results.Ok(new
+        {
+            status = "Healthy",
+            database = "Redis",
+            connected = redis.IsConnected,
+            latencyMs = latency.TotalMilliseconds
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            statusCode: StatusCodes.Status503ServiceUnavailable,
+            title: "Redis unavailable",
+            detail: ex.Message);
+    }
+});
+
 app.MapControllers();
 app.Run();
