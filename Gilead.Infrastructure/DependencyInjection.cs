@@ -39,21 +39,43 @@ public static class DependencyInjection
                             "A Redis connection string must be configured through " +
                             "REDIS_URL or Redis:ConnectionString.");
 
-        var redisOptions = ConfigurationOptions.Parse(connectionString);
-        var redisUser = configuration["Redis:User"];
-        var redisPassword = configuration["Redis:Password"];
+        //var redisOptions = ConfigurationOptions.Parse(connectionString);
+        //var redisUser = configuration["Redis:User"];
+        //var redisPassword = configuration["Redis:Password"];
 
-        if (!string.IsNullOrWhiteSpace(redisUser))
+        ConfigurationOptions configOptions;
+
+        if (connectionString.StartsWith("redis://") || connectionString.StartsWith("rediss://"))
         {
-            redisOptions.User = redisUser;
+            var uri = new Uri(connectionString);
+            var userInfo = uri.UserInfo.Split(':');
+            string password = userInfo.Length > 1 ? userInfo[1] : userInfo[0];
+
+            configOptions = new ConfigurationOptions
+            {
+                EndPoints = { { uri.Host, uri.Port > 0 ? uri.Port : 6379 } },
+                Password = password,
+                Ssl = uri.Scheme == "rediss",
+                AbortOnConnectFail = false
+            };
+        }
+        else
+        {
+            configOptions = ConfigurationOptions.Parse(connectionString);
+            configOptions.AbortOnConnectFail = false;
         }
 
-        if (!string.IsNullOrWhiteSpace(redisPassword))
-        {
-            redisOptions.Password = redisPassword;
-        }
+        //if (!string.IsNullOrWhiteSpace(redisUser))
+        //{
+        //    redisOptions.User = redisUser;
+        //}
 
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisOptions));
+        //if (!string.IsNullOrWhiteSpace(redisPassword))
+        //{
+        //    redisOptions.Password = redisPassword;
+        //}
+
+        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(configOptions));
         services.AddScoped<IQueueCacheService, QueueCacheService>();
         return services;
     }

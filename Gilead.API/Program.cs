@@ -54,20 +54,17 @@ app.MapGet("/health", async (PostgresConnectionFactory connectionFactory, Cancel
         return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Database unavailable");
     }
 });
-app.MapGet("/health/redis", async (
-    IConnectionMultiplexer redis,
-    CancellationToken cancellationToken) =>
+app.MapGet("/health/redis", async (IConnectionMultiplexer redis) =>
 {
     try
     {
-        var database = redis.GetDatabase();
-
-        var latency = await database.PingAsync();
+        var db = redis.GetDatabase();
+        var latency = await db.PingAsync();
 
         return Results.Ok(new
         {
             status = "Healthy",
-            database = "Redis",
+            redis = "Connected",
             connected = redis.IsConnected,
             latencyMs = latency.TotalMilliseconds
         });
@@ -75,11 +72,12 @@ app.MapGet("/health/redis", async (
     catch (Exception ex)
     {
         return Results.Problem(
-            statusCode: StatusCodes.Status503ServiceUnavailable,
+            statusCode: 503,
             title: "Redis unavailable",
             detail: ex.Message);
     }
 });
+
 
 app.MapControllers();
 app.Run();
