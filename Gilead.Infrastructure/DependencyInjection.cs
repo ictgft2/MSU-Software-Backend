@@ -33,8 +33,12 @@ public static class DependencyInjection
 
     public static IServiceCollection AddGileadCache(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration["Redis:ConnectionString"]
-            ?? throw new InvalidOperationException("Redis:ConnectionString is not configured.");
+        var connectionString = Environment.GetEnvironmentVariable("REDIS_URL")
+                        ?? configuration["Redis:ConnectionString"]
+                        ?? throw new InvalidOperationException(
+                            "A Redis connection string must be configured through " +
+                            "REDIS_URL or Redis:ConnectionString.");
+
         var redisOptions = ConfigurationOptions.Parse(connectionString);
         var redisUser = configuration["Redis:User"];
         var redisPassword = configuration["Redis:Password"];
