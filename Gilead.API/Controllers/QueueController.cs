@@ -1,9 +1,11 @@
 using Gilead.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gilead.API.Controllers;
 
 [Route("api/v1/queue")]
+[Authorize(Roles = "Registrar,Nurse,Doctor")]
 public sealed class QueueController(IQueueService queue) : ApiControllerBase
 {
     [HttpPost("{encounterId:guid}/join")]

@@ -1,4 +1,5 @@
 using Gilead.Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace Gilead.Domain.Entities;
 
@@ -9,5 +10,7 @@ public sealed class Staff
     public string Email { get; set; } = string.Empty;
     public StaffRole Role { get; set; }
     public bool IsActive { get; set; }
+    [JsonIgnore]
+    public string PasswordHash { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
 }

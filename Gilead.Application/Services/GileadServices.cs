@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Gilead.Application.DTOs;
 using Gilead.Application.Interfaces;
+using Gilead.Application.Security;
 using Gilead.Domain.Entities;
 using Gilead.Domain.Enums;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +34,8 @@ internal sealed class StaffService(IStaffRepository staff) : IStaffService
 {
     public async Task<ServiceResult<Staff>> CreateAsync(CreateStaffRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email))
-            return ServiceResult<Staff>.Fail("Staff name and email are required.");
+        if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            return ServiceResult<Staff>.Fail("Staff name, email, and password are required.");
 
         var created = await staff.InsertAsync(new Staff
         {
@@ -43,9 +44,18 @@ internal sealed class StaffService(IStaffRepository staff) : IStaffService
             Email = request.Email.Trim(),
             Role = request.Role,
             IsActive = true,
+            PasswordHash = PasswordHasher.Hash(request.Password),
             CreatedAt = DateTimeOffset.UtcNow
         }, cancellationToken);
         return ServiceResult<Staff>.Ok(created, 201);
+    }
+
+    public async Task<ServiceResult<Staff>> AuthenticateAsync(LoginRequest request, CancellationToken cancellationToken)
+    {
+        var member = await staff.GetByEmailAsync(request.Email.Trim(), cancellationToken);
+        return member is not null && member.IsActive && PasswordHasher.Verify(request.Password, member.PasswordHash)
+            ? ServiceResult<Staff>.Ok(member)
+            : ServiceResult<Staff>.Fail("Invalid email or password.", 401);
     }
 
     public async Task<ServiceResult<Staff>> GetByIdAsync(Guid staffId, CancellationToken cancellationToken) =>
@@ -67,7 +77,8 @@ internal sealed class StaffService(IStaffRepository staff) : IStaffService
             FullName = request.FullName.Trim(),
             Email = request.Email.Trim(),
             Role = request.Role,
-            IsActive = request.IsActive
+            IsActive = request.IsActive,
+            PasswordHash = string.IsNullOrWhiteSpace(request.Password) ? string.Empty : PasswordHasher.Hash(request.Password)
         }, cancellationToken);
         return updated is null
             ? ServiceResult<Staff>.Fail("Staff member not found.", 404)

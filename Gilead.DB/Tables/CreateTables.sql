@@ -4,6 +4,7 @@ CREATE TABLE public.Staff (
     Email varchar(320) NOT NULL,
     Role varchar(30) NOT NULL,
     IsActive boolean NOT NULL,
+    PasswordHash varchar(500) NULL,
     CreatedAt timestamptz NOT NULL,
     CONSTRAINT pk_staff PRIMARY KEY (Id),
     CONSTRAINT uq_staff_email UNIQUE (Email),

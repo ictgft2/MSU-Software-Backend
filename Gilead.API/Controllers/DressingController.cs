@@ -1,11 +1,13 @@
 using Gilead.Application.DTOs;
 using Gilead.Application.Interfaces;
 using Gilead.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gilead.API.Controllers;
 
 [Route("api/v1/dressing/orders")]
+[Authorize(Roles = "DressingNurse")]
 public sealed class DressingController(IDressingService dressing) : ApiControllerBase
 {
     [HttpGet]

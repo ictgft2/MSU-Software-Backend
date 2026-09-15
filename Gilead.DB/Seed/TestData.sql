@@ -76,15 +76,15 @@ BEGIN
     DELETE FROM public.Staff WHERE Id IN (registrar_id, nurse_id, doctor_id, pharmacist_id, protocol_officer_id, scientist_id, dressing_nurse_id);
     DELETE FROM public.ServiceTimeWindows WHERE Id = today_window_id AND Date <> today;
 
-    INSERT INTO public.Staff (Id, FullName, Email, Role, IsActive, CreatedAt)
+    INSERT INTO public.Staff (Id, FullName, Email, Role, IsActive, PasswordHash, CreatedAt)
     VALUES
-        (registrar_id, 'Adebayo Okafor', 'registrar@gilead.test', 'Registrar', true, seed_now),
-        (nurse_id, 'Ngozi Eze', 'nurse@gilead.test', 'Nurse', true, seed_now),
-        (doctor_id, 'Jane Adeyemi', 'doctor@gilead.test', 'Doctor', true, seed_now),
-        (pharmacist_id, 'Samuel Bello', 'pharmacist@gilead.test', 'Pharmacist', true, seed_now),
-        (protocol_officer_id, 'Ibrahim Yusuf', 'protocol@gilead.test', 'ProtocolOfficer', true, seed_now),
-        (scientist_id, 'Grace Mensah', 'scientist@gilead.test', 'Scientist', true, seed_now),
-        (dressing_nurse_id, 'Musa Ibrahim', 'dressing.nurse@gilead.test', 'DressingNurse', true, seed_now);
+        (registrar_id, 'Adebayo Okafor', 'registrar@gilead.test', 'Registrar', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now),
+        (nurse_id, 'Ngozi Eze', 'nurse@gilead.test', 'Nurse', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now),
+        (doctor_id, 'Jane Adeyemi', 'doctor@gilead.test', 'Doctor', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now),
+        (pharmacist_id, 'Samuel Bello', 'pharmacist@gilead.test', 'Pharmacist', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now),
+        (protocol_officer_id, 'Ibrahim Yusuf', 'protocol@gilead.test', 'ProtocolOfficer', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now),
+        (scientist_id, 'Grace Mensah', 'scientist@gilead.test', 'Scientist', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now),
+        (dressing_nurse_id, 'Musa Ibrahim', 'dressing.nurse@gilead.test', 'DressingNurse', true, 'v1$120000$AQEBAQEBAQEBAQEBAQEBAQ==$hrC/CDDZbqVdgvyM4nWybJqfi5rAxkHSCyE2IwW0DHI=', seed_now);
 
     IF EXISTS (SELECT 1 FROM public.ServiceTimeWindows WHERE Date = today) THEN
         UPDATE public.ServiceTimeWindows

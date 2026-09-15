@@ -1,9 +1,11 @@
 using Gilead.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gilead.API.Controllers;
 
 [Route("api/v1/register/drugs")]
+[Authorize(Roles = "Registrar,Pharmacist")]
 public sealed class RegisterController(IRegisterService register) : ApiControllerBase
 {
     [HttpGet]

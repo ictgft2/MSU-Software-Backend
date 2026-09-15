@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS public.Staff (
     Email varchar(320) NOT NULL,
     Role varchar(30) NOT NULL,
     IsActive boolean NOT NULL,
+    PasswordHash varchar(500) NULL,
     CreatedAt timestamptz NOT NULL,
     CONSTRAINT pk_staff PRIMARY KEY (Id),
     CONSTRAINT uq_staff_email UNIQUE (Email),
@@ -20,6 +21,7 @@ ALTER TABLE public.Encounters ADD COLUMN IF NOT EXISTS RegisteredBy uuid;
 ALTER TABLE public.VitalSigns ADD COLUMN IF NOT EXISTS RecordedBy uuid;
 ALTER TABLE public.ContactTraces ADD COLUMN IF NOT EXISTS RecordedBy uuid;
 ALTER TABLE public.ServiceTimeWindows ADD COLUMN IF NOT EXISTS CreatedBy uuid;
+ALTER TABLE public.Staff ADD COLUMN IF NOT EXISTS PasswordHash varchar(500);
 
 UPDATE public.Encounters SET RegisteredBy = '00000000-0000-0000-0000-000000000001' WHERE RegisteredBy IS NULL;
 UPDATE public.VitalSigns SET RecordedBy = '00000000-0000-0000-0000-000000000001' WHERE RecordedBy IS NULL;

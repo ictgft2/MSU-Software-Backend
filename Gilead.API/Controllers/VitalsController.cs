@@ -1,10 +1,12 @@
 using Gilead.Application.DTOs;
 using Gilead.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gilead.API.Controllers;
 
 [Route("api/v1/encounters/{encounterId:guid}/vitals")]
+[Authorize(Roles = "Nurse")]
 public sealed class VitalsController(IVitalsService vitals) : ApiControllerBase
 {
     [HttpPost]

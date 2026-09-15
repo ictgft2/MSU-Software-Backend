@@ -8,6 +8,7 @@ public interface IStaffRepository
 {
     Task<Staff> InsertAsync(Staff staff, CancellationToken cancellationToken);
     Task<Staff?> GetByIdAsync(Guid staffId, CancellationToken cancellationToken);
+    Task<Staff?> GetByEmailAsync(string email, CancellationToken cancellationToken);
     Task<IReadOnlyList<Staff>> GetListAsync(StaffRole? role, bool? isActive, CancellationToken cancellationToken);
     Task<Staff?> UpdateAsync(Staff staff, CancellationToken cancellationToken);
 }

@@ -215,6 +215,14 @@ PATCH /api/v1/staff/{staffId}
 
 Supported roles are `Doctor`, `Pharmacist`, `Nurse`, `Scientist`, `ProtocolOfficer`, `Registrar`, and `DressingNurse`.
 
+### Authentication
+
+```http
+POST /api/v1/auth/login
+```
+
+Login with a staff email and password, then send the returned token as `Authorization: Bearer {token}`. The token contains the staff role and protected endpoints enforce that role. Seeded development accounts use password `ChangeMe123`; replace those credentials and `Jwt:SecretKey` before deployment.
+
 ### Patients
 
 ```http

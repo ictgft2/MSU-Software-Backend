@@ -1,11 +1,13 @@
 using Gilead.Application.DTOs;
 using Gilead.Application.Interfaces;
 using Gilead.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gilead.API.Controllers;
 
 [Route("api/v1/pharmacy/prescriptions")]
+[Authorize(Roles = "Pharmacist")]
 public sealed class PharmacyController(IPharmacyService pharmacy) : ApiControllerBase
 {
     [HttpGet]

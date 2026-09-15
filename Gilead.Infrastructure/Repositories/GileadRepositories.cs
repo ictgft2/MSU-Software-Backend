@@ -49,6 +49,7 @@ public sealed class StaffRepository(PostgresConnectionFactory factory) : IStaffR
             ("Email", staff.Email),
             ("Role", staff.Role.ToString()),
             ("IsActive", staff.IsActive),
+            ("PasswordHash", staff.PasswordHash),
             ("CreatedAt", staff.CreatedAt)), cancellationToken));
     }
 
@@ -57,6 +58,13 @@ public sealed class StaffRepository(PostgresConnectionFactory factory) : IStaffR
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
         var sql = Db.Function("usp_Staff_GetById", "StaffId");
         return await connection.QuerySingleOrDefaultAsync<Staff>(Db.Command(sql, Db.Params(("StaffId", staffId)), cancellationToken));
+    }
+
+    public async Task<Staff?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
+        var sql = Db.Function("usp_Staff_GetByEmail", "Email");
+        return await connection.QuerySingleOrDefaultAsync<Staff>(Db.Command(sql, Db.Params(("Email", email)), cancellationToken));
     }
 
     public async Task<IReadOnlyList<Staff>> GetListAsync(StaffRole? role, bool? isActive, CancellationToken cancellationToken)
@@ -72,13 +80,14 @@ public sealed class StaffRepository(PostgresConnectionFactory factory) : IStaffR
     public async Task<Staff?> UpdateAsync(Staff staff, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        var sql = Db.Function("usp_Staff_Update", "Id", "FullName", "Email", "Role", "IsActive");
+        var sql = Db.Function("usp_Staff_Update", "Id", "FullName", "Email", "Role", "IsActive", "PasswordHash");
         return await connection.QuerySingleOrDefaultAsync<Staff>(Db.Command(sql, Db.Params(
             ("Id", staff.Id),
             ("FullName", staff.FullName),
             ("Email", staff.Email),
             ("Role", staff.Role.ToString()),
-            ("IsActive", staff.IsActive)), cancellationToken));
+            ("IsActive", staff.IsActive),
+            ("PasswordHash", string.IsNullOrWhiteSpace(staff.PasswordHash) ? null : staff.PasswordHash)), cancellationToken));
     }
 }
 
