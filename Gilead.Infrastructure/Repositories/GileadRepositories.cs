@@ -42,7 +42,7 @@ public sealed class StaffRepository(PostgresConnectionFactory factory) : IStaffR
     public async Task<Staff> InsertAsync(Staff staff, CancellationToken cancellationToken)
     {
         await using var connection = await factory.CreateOpenConnectionAsync(cancellationToken);
-        var sql = Db.Function("usp_Staff_Insert", "Id", "FullName", "Email", "Role", "IsActive", "CreatedAt");
+        var sql = Db.Function("usp_Staff_Insert", "Id", "FullName", "Email", "Role", "IsActive", "PasswordHash", "CreatedAt");
         return await connection.QuerySingleAsync<Staff>(Db.Command(sql, Db.Params(
             ("Id", staff.Id),
             ("FullName", staff.FullName),
